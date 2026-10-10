@@ -2,6 +2,7 @@ import { useState } from "react";
 import { api, errorMessage } from "./api";
 import {
   capacitySchema,
+  normaliseSourceUrl,
   profileSchema,
   requirementsSchema,
   type Capacity,
@@ -316,8 +317,16 @@ export default function ProfileEditor({
             Requirements source URL
             <input
               type="url"
+              placeholder="https://store.steampowered.com/app/…"
+              aria-describedby="source-url-help"
               maxLength={2048}
               value={profile.provenance.source_url ?? ""}
+              onBlur={(e) =>
+                update("provenance", {
+                  ...profile.provenance,
+                  source_url: normaliseSourceUrl(e.target.value) || null,
+                })
+              }
               onChange={(e) =>
                 update("provenance", {
                   ...profile.provenance,
@@ -340,9 +349,13 @@ export default function ProfileEditor({
             />
           </label>
         </div>
-        <small>
-          Source labels and dates are recorded by you. GameSpec does not
-          independently authenticate them.
+        <small id="source-url-help">
+          Steam store and publisher URLs are accepted as references. Enter the
+          minimum and recommended specifications below; this field does not
+          download them. Use Community for community-posted requirements, or
+          Official when you have checked the publisher's requirements and
+          recorded the verification date. Labels are recorded by you, not
+          authenticated by GameSpec.
         </small>
       </section>
       <div className="two-column">

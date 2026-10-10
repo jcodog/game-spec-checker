@@ -66,6 +66,8 @@ export default function App() {
   } | null>(null);
   const [trusted, setTrusted] = useState(false);
   const file = useRef<HTMLInputElement>(null);
+  const destinationInput = useRef<HTMLInputElement>(null);
+  const assessmentOutput = useRef<HTMLDivElement>(null);
   const selected = profiles.find((p) => p.id === profileId);
   const filtered = filterProfiles(profiles, search);
   const modes = Array.from(
@@ -119,6 +121,15 @@ export default function App() {
       active = false;
     };
   }, []);
+  useEffect(() => {
+    if (report)
+      assessmentOutput.current?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
+        block: "start",
+      });
+  }, [report]);
   useEffect(() => {
     if (!report) return;
     let active = true;
@@ -499,9 +510,22 @@ export default function App() {
                 </div>
                 <form
                   className="panel setup"
+                  noValidate
                   onSubmit={(e) => {
                     e.preventDefault();
-                    if (!selected) return;
+                    if (!selected) {
+                      setError(
+                        "Select a saved game before checking compatibility.",
+                      );
+                      return;
+                    }
+                    if (!destination.trim()) {
+                      setError(
+                        "Choose an installation drive or enter a destination path before checking compatibility.",
+                      );
+                      destinationInput.current?.focus();
+                      return;
+                    }
                     void task("Assessing your system", async () => {
                       const r = await api.check(selected, gpuId, destination);
                       setSystem(r.system);
@@ -578,7 +602,9 @@ export default function App() {
                     <label>
                       Destination path
                       <input
+                        ref={destinationInput}
                         required
+                        aria-describedby="destination-help"
                         value={destination}
                         placeholder="C:\Games\YourGame"
                         onChange={(e) => {
@@ -586,9 +612,10 @@ export default function App() {
                           setReport(null);
                         }}
                       />
-                      <small>
-                        The native scanner resolves the actual backing volume,
-                        including mounted folders.
+                      <small id="destination-help">
+                        Required for the storage check. Choose a drive on the
+                        left or enter the folder where you intend to install the
+                        game. The scanner resolves its actual backing volume.
                       </small>
                     </label>
                   </div>
@@ -636,26 +663,32 @@ export default function App() {
                       supplied by the author.
                     </p>
                   )}
-                  <button disabled={!!busy || !selected || !destination}>
-                    Check compatibility
-                  </button>
+                  {!destination.trim() && (
+                    <p className="warning">
+                      Choose an installation drive or enter a destination path
+                      to run the assessment.
+                    </p>
+                  )}
+                  <button disabled={!!busy}>Check compatibility</button>
                 </form>
                 {report && (
                   <>
-                    <AssessmentView
-                      report={report}
-                      onCopy={() => {
-                        void task("Copying report", async () => {
-                          await navigator.clipboard.writeText(
-                            JSON.stringify(report, null, 2),
-                          );
-                          setNotice("JSON report copied.");
-                        });
-                      }}
-                      onExport={() => {
-                        void exportValue(report, "report");
-                      }}
-                    />
+                    <div ref={assessmentOutput}>
+                      <AssessmentView
+                        report={report}
+                        onCopy={() => {
+                          void task("Copying report", async () => {
+                            await navigator.clipboard.writeText(
+                              JSON.stringify(report, null, 2),
+                            );
+                            setNotice("JSON report copied.");
+                          });
+                        }}
+                        onExport={() => {
+                          void exportValue(report, "report");
+                        }}
+                      />
+                    </div>
                     <section className="graphics">
                       <div className="page-heading">
                         <div>

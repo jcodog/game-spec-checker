@@ -54,11 +54,23 @@ try {
   await page
     .getByLabel("Game version", { exact: true })
     .fill("Verification only");
+  await page
+    .getByRole("combobox", { name: "Requirements provenance", exact: true })
+    .selectOption("community");
+  await page
+    .getByLabel("Requirements source URL", { exact: true })
+    .fill("  store.steampowered.com/app/3393110/AION_2/  ");
   await nav("Save game profile").click();
   await row("Desktop verification game").waitFor();
   await row("Desktop verification game")
     .getByRole("button", { name: "Edit", exact: true })
     .click();
+  assert.equal(
+    await page
+      .getByLabel("Requirements source URL", { exact: true })
+      .inputValue(),
+    "https://store.steampowered.com/app/3393110/AION_2/",
+  );
   await page
     .getByLabel("Game version", { exact: true })
     .fill("Edited and persisted");
@@ -79,6 +91,15 @@ try {
   await row("Desktop verification game")
     .getByRole("button", { name: "Assess", exact: true })
     .click();
+  await page.getByRole("textbox", { name: /^Destination path/ }).fill("");
+  await expect(nav("Check compatibility")).toBeEnabled();
+  await nav("Check compatibility").click();
+  await expect(page.getByRole("alert")).toContainText(
+    "Choose an installation drive or enter a destination path",
+  );
+  await expect(
+    page.getByRole("textbox", { name: /^Destination path/ }),
+  ).toBeFocused();
   const gpu = page.getByRole("combobox", { name: "Gaming GPU", exact: true });
   const ids = await gpu
     .locator("option")
@@ -220,6 +241,8 @@ try {
         persistenceAcrossReload: true,
         search: true,
         jsonImportPreservesExisting: true,
+        steamSourcePersistence: true,
+        missingDestinationGuidance: true,
         catalogueValidationAndReview: true,
         copyReport: true,
         componentCount: 8,

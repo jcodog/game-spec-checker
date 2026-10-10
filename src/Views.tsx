@@ -309,6 +309,14 @@ export function AssessmentView({
                 />
               </div>
             </div>
+            {(c.minimum.result !== "pass" ||
+              c.recommended.result !== "pass") && (
+              <p>
+                {c.minimum.result !== "pass"
+                  ? c.minimum.explanation
+                  : c.recommended.explanation}
+              </p>
+            )}
             <details>
               <summary>Explanation and technical evidence</summary>
               <div className="two-column">

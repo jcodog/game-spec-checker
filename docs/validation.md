@@ -8,7 +8,8 @@ not intended checks. The original main workflows passing does not validate this 
 - 40 Rust core regression tests passed, without requiring GPU hardware.
 - Core and CLI Clippy passed with warnings denied after the final test additions.
 - Frontend lint and TypeScript checks passed.
-- Nine frontend boundary/state-helper tests passed.
+- Ten frontend boundary/state-helper tests passed, including the supplied AION 2
+  Steam URL, pasted whitespace, omitted HTTPS, scheme case and query preservation.
 - Frontend production build passed. Rollup reports harmless annotation warnings
   inside the installed Zod package; errors were not suppressed.
 - A shared-core CLI build succeeded.
@@ -82,6 +83,15 @@ accessible combobox names. Blank-profile and real-volume assertions were preserv
 A subsequent identity-data pass adds explicit conservative short aliases and its
 regression test. It changes no UI/assessment code and does not create cross-model
 performance evidence. Latest-branch CI status is recorded in the pull request.
+
+The reported AION 2 Steam URL saved successfully through the installed app's real
+editor/IPC before the follow-up URL handling changes. Its rejection was not
+reproduced. The follow-up accepts surrounding whitespace and omitted HTTPS on
+Steam store links, explains provenance entry, and makes missing-destination
+validation actionable instead of disabling the assessment button. Failed/unknown
+component explanations are visible, and completed reports scroll into view.
+The desktop regression script now covers these interactions; its packaged-build
+execution status is recorded in the pull request after it runs.
 
 ## Remaining verification gaps
 

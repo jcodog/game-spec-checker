@@ -48,6 +48,33 @@ describe("profile editing boundary", () => {
       }).success,
     ).toBe(false);
   });
+  it("accepts Steam sources and normalises pasted URLs without fetching data", () => {
+    const url = "https://store.steampowered.com/app/3393110/AION_2/";
+    for (const input of [
+      url,
+      `  ${url}  `,
+      url.replace("https://", ""),
+      url.replace("https:", "HTTPS:"),
+    ]) {
+      const p = profileSchema.parse({
+        ...sample,
+        provenance: {
+          ...sample.provenance,
+          kind: "community",
+          source_url: input,
+        },
+      });
+      expect(p.provenance.source_url).toBe(url);
+      expect(p.minimum).toEqual(profile.minimum);
+    }
+    const tracked = `${url}?l=english&utm_source=reference#requirements`;
+    expect(
+      profileSchema.parse({
+        ...sample,
+        provenance: { ...sample.provenance, source_url: tracked },
+      }).provenance.source_url,
+    ).toBe(tracked);
+  });
   it("duplicates explicitly and isolates edits", () => {
     const p = duplicateProfile(
       { ...profile, provenance: { ...profile.provenance, kind: "official" } },

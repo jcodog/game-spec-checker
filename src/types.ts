@@ -1,6 +1,12 @@
 import { z } from "zod";
 const text = z.string().nullable();
 const number = z.number().finite().nullable();
+export function normaliseSourceUrl(value: string): string {
+  const trimmed = value.trim();
+  return /^store\.steampowered\.com\//i.test(trimmed)
+    ? `https://${trimmed}`
+    : trimmed;
+}
 export const capacitySchema = z
   .object({
     value: z.number().finite().min(0).max(100000),
@@ -26,9 +32,18 @@ export const provenanceSchema = z
     kind: z.enum(["official", "community", "user_entered", "unverified"]),
     source_url: z
       .string()
-      .url()
-      .max(2048)
-      .refine((u) => /^https?:\/\//.test(u))
+      .transform(normaliseSourceUrl)
+      .pipe(
+        z
+          .string()
+          .url()
+          .max(2048)
+          .refine(
+            (u) => /^https?:\/\//i.test(u),
+            "Enter an HTTP or HTTPS source URL, such as a Steam store page.",
+          ),
+      )
+      .transform((u) => new URL(u).href)
       .nullable(),
     verified_date: z
       .string()
