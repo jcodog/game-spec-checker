@@ -5,6 +5,9 @@ use std::{fs, path::PathBuf};
 #[derive(Parser)]
 #[command(version, about = "Offline Windows game requirements assessment")]
 struct Args {
+    /// Validated offline benchmark catalog. Omit to use the bundled baseline.
+    #[arg(long, global = true)]
+    catalog: Option<PathBuf>,
     #[command(subcommand)]
     command: Command,
 }
@@ -33,6 +36,7 @@ enum Command {
 }
 fn run() -> Result<(), String> {
     let args = Args::parse();
+    let catalog = catalog::load(args.catalog.as_deref())?;
     let report_output = match &args.command {
         Command::Report { output, .. } => Some(output.clone()),
         _ => None,
@@ -61,12 +65,13 @@ fn run() -> Result<(), String> {
             {
                 return Err("GPU ID not present in scan. Run scan to list adapters.".into());
             }
-            let report = assess(
+            let report = assess_with_catalog(
                 &profile,
                 &snapshot,
                 selected.as_deref(),
                 &path,
                 Some(volume),
+                &catalog,
             );
             (
                 serde_json::to_string_pretty(&report).map_err(|e| e.to_string())?,

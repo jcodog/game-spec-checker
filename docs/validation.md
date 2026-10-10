@@ -1,30 +1,108 @@
-# Validation record
+# Validation record for the overhaul
 
-Delivery validation is in progress. This file records completed checks rather
-than treating source code or workflow definitions as a successful build.
+Branch: feat/evidence-and-profile-overhaul. This document records completed checks,
+not intended checks. The original main workflows passing does not validate this branch.
 
-## Local checks, 10 October 2026
+## Completed locally
 
-- Rust core and CLI compile with Rust 1.99.0 on Windows x64.
-- All 22 Rust compatibility/profile tests pass without a GPU requirement.
-- Rust formatting passes.
-- TypeScript type checking and ESLint pass.
-- All five frontend profile/IPC boundary tests pass.
-- Vite production frontend build passes. Rollup reports harmless annotation
-  warnings in Zod dependency comments.
-- The actual native CLI scan detects CPU, physically installed RAM, GPU dedicated
-  memory, Windows build, volumes and connected displays. Local diagnostics are empty.
-- Actual CLI JSON report generation resolves a future installation directory to
-  its existing backing volume and produces all eight component assessments.
-- Hardware scan and report files remain under ignored `.local/`.
+- 40 Rust core regression tests passed, without requiring GPU hardware.
+- Core and CLI Clippy passed with warnings denied after the final test additions.
+- Frontend lint and TypeScript checks passed.
+- Ten frontend boundary/state-helper tests passed, including the supplied AION 2
+  Steam URL, pasted whitespace, omitted HTTPS, scheme case and query preservation.
+- Frontend production build passed. Rollup reports harmless annotation warnings
+  inside the installed Zod package; errors were not suppressed.
+- A shared-core CLI build succeeded.
 
-## Local environment issue
+Core cases include aliases/variants, cross-vendor interval algorithm, separate
+workloads/scales, conflicting/overlapping evidence, alternatives, licensing guard,
+GB/GiB/ambiguous thresholds, provided-system regression, integrated/multi-GPU,
+API/Windows checks, storage and SSD policies, headroom, blank creation, migration,
+provenance, malformed JSON and corrupt-file isolation/persistence.
 
-The installed MSVC toolchain cannot load its PDB DLL from the expected location.
-Rust's bundled LLVM linker and explicit installed compatibility-library paths
-allow the core and CLI to build. A Tauri dependency's C++ compiler still encounters
-the PDB DLL issue. No system files or antivirus settings were changed.
+Synthetic comparison intervals exist only inside test functions and are explicitly
+labelled. They prove comparison behaviour, not real hardware equivalence. The
+reported-system fixture preserves the user's CPU/GPU/RAM/VRAM/build values while
+using artificial adapter IDs, driver text, volumes, display and available RAM.
+It is not a complete raw hardware export or benchmark dataset.
 
-Full desktop compilation, packaging, real WebView UI verification and GitHub CI
-results will be added after they complete. A usable installer has not yet been
-claimed or published by this record.
+## Environment limitation
+
+Local full Tauri compilation fails in the installed Visual C++ dependency build:
+vswhom-sys C1356 cannot find mspdbcore.dll. Core/CLI build with the available Rust
+LLVM linker and Windows libraries. No antivirus protections were disabled.
+
+## Windows CI and packaging
+
+For commit 96c94b0, both workflows passed:
+
+- Windows CI: https://github.com/jcodog/game-spec-checker/actions/runs/38054177333
+- Windows production build: https://github.com/jcodog/game-spec-checker/actions/runs/38054179134
+- Pull-request CI: https://github.com/jcodog/game-spec-checker/actions/runs/38054457325
+
+They ran full-workspace Rust tests/Clippy, frontend checks, and production desktop
+builds. The production workflow created the current-user NSIS installer, CLI and
+SHA-256 checksums. Downloaded installer/CLI hashes matched the checksum manifest.
+
+The NSIS installer completed successfully into an isolated workspace directory.
+A preflight confirmed no existing GameSpec installation registration would be
+replaced. The installed executable launched outside the development environment
+using existing WebView2. Bundled profiles/catalogue and frontend resources worked.
+No administrator elevation was used by the installer or normal application.
+The Codex command runner used its normal approved host execution.
+
+## Actual desktop execution
+
+The installed executable passed scripts/verify-desktop.mjs using real Tauri IPC
+and the real scanner. No hardware values were mocked or replaced. Verified:
+
+- A new profile has empty CPU/RAM requirements; no Icarus inheritance.
+- Creation, editing, persistence through reload, search and confirmed removal.
+- JSON import receives a new ID and preserves the original Icarus profile.
+- A native assessment renders eight independent component rows and expandable evidence.
+- Copy report, resolution/manual preset changes and measured-FPS tuning.
+- Invalid catalogue rejection, preview, required review acknowledgement, installation/reset.
+- Dark/light themes and no browser page errors.
+- No horizontal overflow at 880 and 1280 CSS pixels or 150% CSS zoom.
+
+scripts/verify-restart.mjs additionally confirmed that a profile and reviewed
+catalogue survive closing and relaunching the complete installed application.
+The test changed only catalogue version metadata, not scores or hardware values.
+Temporary test profiles/catalogue were removed afterward.
+
+Actual screenshots of the installed editor in both themes were reviewed and
+committed under docs/screenshots. Hardware/dashboard and native diagnostic
+screenshots remain private in ignored .local. These screenshots show commit
+96c94b0, not the old main application.
+
+The first interaction attempts failed because getByLabel exact matched full HTML
+label text including options/help text, and because an interrupted editor draft
+was still open. The harness now starts from the dashboard and uses the observed
+accessible combobox names. Blank-profile and real-volume assertions were preserved.
+
+A subsequent identity-data pass adds explicit conservative short aliases and its
+regression test. It changes no UI/assessment code and does not create cross-model
+performance evidence. Latest-branch CI status is recorded in the pull request.
+
+The reported AION 2 Steam URL saved successfully through the installed app's real
+editor/IPC before the follow-up URL handling changes. Its rejection was not
+reproduced. The follow-up accepts surrounding whitespace and omitted HTTPS on
+Steam store links, explains provenance entry, and makes missing-destination
+validation actionable instead of disabling the assessment button. Failed/unknown
+component explanations are visible, and completed reports scroll into view.
+The desktop regression script now covers these interactions; its packaged-build
+execution status is recorded in the pull request after it runs.
+
+Commit 56c864c passed both Windows CI runs and production packaging, then the
+updated installed desktop regression and full restart persistence test. Its actual
+report passed automatic visibility and 880/1280 CSS-pixel overflow checks. Visual
+review found the exposed CPU/GPU uncertainty explanations too technical/repetitive;
+the follow-up keeps a plain summary visible and the full explanation expandable.
+
+## Remaining verification gaps
+
+Native Save-dialog exports were not automated. Installer upgrades/uninstall,
+missing-WebView2 installation, clean Windows 10/11 VMs and real Windows DPI changes
+are not verified. CSS zoom tests demonstrate reflow, not OS DPI behaviour.
+See continuation.md. Passing these checks does not supply missing gaming benchmarks
+or make the full product acceptance criteria complete.

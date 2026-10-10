@@ -1,31 +1,75 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "icarus",
   "name": "Icarus",
   "version": "User-supplied sample",
+  "platform": "Windows PC",
+  "provenance": {
+    "kind": "unverified",
+    "source_url": null,
+    "verified_date": null
+  },
+  "cpu_workload": "cpu_gaming",
+  "gpu_workload": "gpu_raster",
   "minimum": {
-    "cpu": ["AMD Ryzen 5 2600", "Intel Core i5-10500"],
-    "gpu": ["NVIDIA GTX 1050 Ti"],
-    "ram_gib": 8,
-    "vram_gib": 4,
-    "windows_versions": [10, 11],
+    "cpu": [
+      "AMD Ryzen 5 2600",
+      "Intel Core i5-10500"
+    ],
+    "gpu": [
+      "NVIDIA GTX 1050 Ti"
+    ],
+    "ram": {
+      "value": 8,
+      "unit": "gb"
+    },
+    "vram": {
+      "value": 4,
+      "unit": "gb"
+    },
+    "windows_versions": [
+      10,
+      11
+    ],
     "architecture": "x86_64",
     "graphics_api": "DirectX 12",
     "feature_level": null,
-    "storage_gb": 100,
-    "ssd": false
+    "storage": {
+      "value": 100,
+      "unit": "gb"
+    },
+    "ssd": "unspecified"
   },
   "recommended": {
-    "cpu": ["AMD Ryzen 7 3700X", "Intel Core i7-11700"],
-    "gpu": ["NVIDIA RTX 2070"],
-    "ram_gib": 16,
-    "vram_gib": 8,
-    "windows_versions": [10, 11],
+    "cpu": [
+      "AMD Ryzen 7 3700X",
+      "Intel Core i7-11700"
+    ],
+    "gpu": [
+      "NVIDIA RTX 2070"
+    ],
+    "ram": {
+      "value": 16,
+      "unit": "gb"
+    },
+    "vram": {
+      "value": 8,
+      "unit": "gb"
+    },
+    "windows_versions": [
+      10,
+      11
+    ],
     "architecture": "x86_64",
     "graphics_api": "DirectX 12",
     "feature_level": null,
-    "storage_gb": 100,
-    "ssd": true
+    "storage": {
+      "value": 100,
+      "unit": "gb"
+    },
+    "ssd": "recommended"
   },
-  "notes": "Editable sample supplied by the project request. Verify against the publisher for your game version. DirectX 12 does not itself specify a minimum feature level. Storage uses decimal GB; RAM and VRAM use GiB."
+  "installation_headroom": null,
+  "notes": "Editable project-request sample, not verified against an official publisher source. Original published GB is represented as decimal GB. Review the source and choose ambiguous GB if its meaning is unclear. DirectX 12 does not itself specify a feature level.",
+  "migration_notes": []
 }

@@ -1,17 +1,596 @@
 {
-  "version": "2026-10-10.1",
-  "method": "Exact identity or conservative synthetic benchmark comparison. Cross-model results are approximations, not game benchmarks. Ratios inside 0.75 to 1.25 are unknown. No inference across datasets. No laptop/desktop aliasing.",
-  "entries": [
-    {"kind":"gpu","name":"AMD Radeon RX 7600","aliases":["Radeon RX 7600"],"dataset":"tweakers-2023-timespy","score":10748,"source":"https://tweakers.net/reviews/11132/amd-radeon-rx-7600-weinig-vernieuwend-amper-sneller.html","label":"Tweakers, Reinoud Dik, 24 May 2023, Time Spy Graphics"},
-    {"kind":"gpu","name":"NVIDIA GeForce RTX 2070","aliases":["NVIDIA RTX 2070","GeForce RTX 2070","RTX 2070"],"dataset":"tweakers-2023-timespy","score":9010,"source":"https://tweakers.net/reviews/11132/amd-radeon-rx-7600-weinig-vernieuwend-amper-sneller.html","label":"Tweakers, Reinoud Dik, 24 May 2023, Time Spy Graphics"},
-    {"kind":"gpu","name":"NVIDIA GeForce RTX 3070","aliases":["RTX 3070"],"dataset":"tweakers-2023-timespy","score":13669,"source":"https://tweakers.net/reviews/11132/amd-radeon-rx-7600-weinig-vernieuwend-amper-sneller.html","label":"Tweakers, Reinoud Dik, 24 May 2023, Time Spy Graphics"},
-    {"kind":"gpu","name":"NVIDIA GeForce RTX 3060","aliases":["RTX 3060"],"dataset":"tweakers-2023-timespy","score":8752,"source":"https://tweakers.net/reviews/11132/amd-radeon-rx-7600-weinig-vernieuwend-amper-sneller.html","label":"Tweakers, Reinoud Dik, 24 May 2023, Time Spy Graphics"},
-    {"kind":"gpu","name":"AMD Radeon RX 6600","aliases":["Radeon RX 6600","RX 6600"],"dataset":"tweakers-2023-timespy","score":8121,"source":"https://tweakers.net/reviews/11132/amd-radeon-rx-7600-weinig-vernieuwend-amper-sneller.html","label":"Tweakers, Reinoud Dik, 24 May 2023, Time Spy Graphics"},
-    {"kind":"gpu","name":"Intel Arc A770","aliases":["Intel Arc A770 Graphics","Arc A770"],"dataset":"tweakers-2023-timespy","score":13203,"source":"https://tweakers.net/reviews/11132/amd-radeon-rx-7600-weinig-vernieuwend-amper-sneller.html","label":"Tweakers, Reinoud Dik, 24 May 2023, Time Spy Graphics"},
-    {"kind":"gpu","name":"NVIDIA GeForce GTX 1050 Ti","aliases":["NVIDIA GTX 1050 Ti","GTX 1050 Ti"],"dataset":null,"score":null,"source":"Profile identity only","label":"No comparative benchmark in this dataset"},
-    {"kind":"cpu","name":"AMD Ryzen 5 2600","aliases":["AMD Ryzen 5 2600 Six-Core Processor","Ryzen 5 2600"],"dataset":null,"score":null,"source":"Profile identity only","label":"Exact identity only"},
-    {"kind":"cpu","name":"AMD Ryzen 7 3700X","aliases":["AMD Ryzen 7 3700X 8-Core Processor","Ryzen 7 3700X"],"dataset":null,"score":null,"source":"Profile identity only","label":"Exact identity only"},
-    {"kind":"cpu","name":"Intel Core i5-10500","aliases":["Intel Core i5-10500 CPU @ 3.10GHz","Intel(R) Core(TM) i5-10500 CPU @ 3.10GHz"],"dataset":null,"score":null,"source":"Profile identity only","label":"Exact identity only"},
-    {"kind":"cpu","name":"Intel Core i7-11700","aliases":["Intel Core i7-11700 @ 2.50GHz","11th Gen Intel(R) Core(TM) i7-11700 @ 2.50GHz"],"dataset":null,"score":null,"source":"Profile identity only","label":"Exact identity only"}
-  ]
+  "schema_version": 2,
+  "version": "2026-10-10.3",
+  "devices": [
+    {
+      "id": "device-0",
+      "kind": "gpu",
+      "name": "AMD Radeon RX 7600",
+      "aliases": [
+        "Radeon RX 7600",
+        "RX 7600"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-1",
+      "kind": "gpu",
+      "name": "NVIDIA GeForce RTX 2070",
+      "aliases": [
+        "NVIDIA RTX 2070",
+        "GeForce RTX 2070",
+        "RTX 2070"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-2",
+      "kind": "gpu",
+      "name": "NVIDIA GeForce RTX 3070",
+      "aliases": [
+        "RTX 3070",
+        "GeForce RTX 3070"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-3",
+      "kind": "gpu",
+      "name": "NVIDIA GeForce RTX 3060",
+      "aliases": [
+        "RTX 3060",
+        "GeForce RTX 3060"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-4",
+      "kind": "gpu",
+      "name": "AMD Radeon RX 6600",
+      "aliases": [
+        "Radeon RX 6600",
+        "RX 6600"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-5",
+      "kind": "gpu",
+      "name": "Intel Arc A770",
+      "aliases": [
+        "Intel Arc A770 Graphics",
+        "Arc A770"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-6",
+      "kind": "gpu",
+      "name": "NVIDIA GeForce GTX 1050 Ti",
+      "aliases": [
+        "NVIDIA GTX 1050 Ti",
+        "GTX 1050 Ti",
+        "GeForce GTX 1050 Ti"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-7",
+      "kind": "cpu",
+      "name": "AMD Ryzen 5 2600",
+      "aliases": [
+        "AMD Ryzen 5 2600 Six-Core Processor",
+        "Ryzen 5 2600"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-8",
+      "kind": "cpu",
+      "name": "AMD Ryzen 7 3700X",
+      "aliases": [
+        "AMD Ryzen 7 3700X 8-Core Processor",
+        "Ryzen 7 3700X"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-9",
+      "kind": "cpu",
+      "name": "Intel Core i5-10500",
+      "aliases": [
+        "Intel Core i5-10500 CPU @ 3.10GHz",
+        "Intel(R) Core(TM) i5-10500 CPU @ 3.10GHz",
+        "Core i5-10500",
+        "i5-10500"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-10",
+      "kind": "cpu",
+      "name": "Intel Core i7-11700",
+      "aliases": [
+        "Intel Core i7-11700 @ 2.50GHz",
+        "11th Gen Intel(R) Core(TM) i7-11700 @ 2.50GHz",
+        "Core i7-11700",
+        "i7-11700"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-11",
+      "kind": "cpu",
+      "name": "AMD Ryzen 5 3600",
+      "aliases": [
+        "Ryzen 5 3600"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-12",
+      "kind": "cpu",
+      "name": "AMD Ryzen 5 5600",
+      "aliases": [
+        "Ryzen 5 5600"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-13",
+      "kind": "cpu",
+      "name": "AMD Ryzen 5 5600X",
+      "aliases": [
+        "Ryzen 5 5600X"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-14",
+      "kind": "cpu",
+      "name": "AMD Ryzen 7 5800X",
+      "aliases": [
+        "Ryzen 7 5800X"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-15",
+      "kind": "cpu",
+      "name": "AMD Ryzen 7 5800X3D",
+      "aliases": [
+        "Ryzen 7 5800X3D"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-16",
+      "kind": "cpu",
+      "name": "AMD Ryzen 5 7600",
+      "aliases": [
+        "Ryzen 5 7600"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-17",
+      "kind": "cpu",
+      "name": "AMD Ryzen 7 7800X3D",
+      "aliases": [
+        "Ryzen 7 7800X3D"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-18",
+      "kind": "cpu",
+      "name": "AMD Ryzen 7 9800X3D",
+      "aliases": [
+        "Ryzen 7 9800X3D"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-19",
+      "kind": "cpu",
+      "name": "Intel Core i5-9400F",
+      "aliases": [
+        "Core i5-9400F",
+        "i5-9400F"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-20",
+      "kind": "cpu",
+      "name": "Intel Core i5-10400F",
+      "aliases": [
+        "Core i5-10400F",
+        "i5-10400F"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-21",
+      "kind": "cpu",
+      "name": "Intel Core i5-11400F",
+      "aliases": [
+        "Core i5-11400F",
+        "i5-11400F"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-22",
+      "kind": "cpu",
+      "name": "Intel Core i5-12400F",
+      "aliases": [
+        "Core i5-12400F",
+        "i5-12400F"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-23",
+      "kind": "cpu",
+      "name": "Intel Core i5-13400F",
+      "aliases": [
+        "Core i5-13400F",
+        "i5-13400F"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-24",
+      "kind": "cpu",
+      "name": "Intel Core i5-13600K",
+      "aliases": [
+        "Core i5-13600K",
+        "i5-13600K"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-25",
+      "kind": "cpu",
+      "name": "Intel Core i7-12700K",
+      "aliases": [
+        "Core i7-12700K",
+        "i7-12700K"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-26",
+      "kind": "cpu",
+      "name": "Intel Core i7-13700K",
+      "aliases": [
+        "Core i7-13700K",
+        "i7-13700K"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-27",
+      "kind": "cpu",
+      "name": "Intel Core i9-13900K",
+      "aliases": [
+        "Core i9-13900K",
+        "i9-13900K"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-28",
+      "kind": "gpu",
+      "name": "NVIDIA GeForce GTX 1060 6GB",
+      "aliases": [
+        "NVIDIA GTX 1060 6GB",
+        "GeForce GTX 1060 6GB",
+        "GTX 1060 6GB"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-29",
+      "kind": "gpu",
+      "name": "NVIDIA GeForce GTX 1650",
+      "aliases": [
+        "NVIDIA GTX 1650",
+        "GeForce GTX 1650",
+        "GTX 1650"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-30",
+      "kind": "gpu",
+      "name": "NVIDIA GeForce GTX 1660 SUPER",
+      "aliases": [
+        "NVIDIA GTX 1660 SUPER",
+        "GeForce GTX 1660 SUPER",
+        "GTX 1660 SUPER"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-31",
+      "kind": "gpu",
+      "name": "NVIDIA GeForce RTX 2060",
+      "aliases": [
+        "NVIDIA RTX 2060",
+        "GeForce RTX 2060",
+        "RTX 2060"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-32",
+      "kind": "gpu",
+      "name": "NVIDIA GeForce RTX 2080",
+      "aliases": [
+        "NVIDIA RTX 2080",
+        "GeForce RTX 2080",
+        "RTX 2080"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-33",
+      "kind": "gpu",
+      "name": "NVIDIA GeForce RTX 3060 Ti",
+      "aliases": [
+        "NVIDIA RTX 3060 Ti",
+        "GeForce RTX 3060 Ti",
+        "RTX 3060 Ti"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-34",
+      "kind": "gpu",
+      "name": "NVIDIA GeForce RTX 3080",
+      "aliases": [
+        "NVIDIA RTX 3080",
+        "GeForce RTX 3080",
+        "RTX 3080"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-35",
+      "kind": "gpu",
+      "name": "NVIDIA GeForce RTX 4060",
+      "aliases": [
+        "NVIDIA RTX 4060",
+        "GeForce RTX 4060",
+        "RTX 4060"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-36",
+      "kind": "gpu",
+      "name": "NVIDIA GeForce RTX 4070",
+      "aliases": [
+        "NVIDIA RTX 4070",
+        "GeForce RTX 4070",
+        "RTX 4070"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-37",
+      "kind": "gpu",
+      "name": "NVIDIA GeForce RTX 4080",
+      "aliases": [
+        "NVIDIA RTX 4080",
+        "GeForce RTX 4080",
+        "RTX 4080"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-38",
+      "kind": "gpu",
+      "name": "NVIDIA GeForce RTX 4090",
+      "aliases": [
+        "NVIDIA RTX 4090",
+        "GeForce RTX 4090",
+        "RTX 4090"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-39",
+      "kind": "gpu",
+      "name": "AMD Radeon RX 580",
+      "aliases": [
+        "AMD RX 580",
+        "Radeon RX 580",
+        "RX 580"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-40",
+      "kind": "gpu",
+      "name": "AMD Radeon RX 5600 XT",
+      "aliases": [
+        "AMD RX 5600 XT",
+        "Radeon RX 5600 XT",
+        "RX 5600 XT"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-41",
+      "kind": "gpu",
+      "name": "AMD Radeon RX 5700 XT",
+      "aliases": [
+        "AMD RX 5700 XT",
+        "Radeon RX 5700 XT",
+        "RX 5700 XT"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-42",
+      "kind": "gpu",
+      "name": "AMD Radeon RX 6600 XT",
+      "aliases": [
+        "AMD RX 6600 XT",
+        "Radeon RX 6600 XT",
+        "RX 6600 XT"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-43",
+      "kind": "gpu",
+      "name": "AMD Radeon RX 6700 XT",
+      "aliases": [
+        "AMD RX 6700 XT",
+        "Radeon RX 6700 XT",
+        "RX 6700 XT"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-44",
+      "kind": "gpu",
+      "name": "AMD Radeon RX 6800 XT",
+      "aliases": [
+        "AMD RX 6800 XT",
+        "Radeon RX 6800 XT",
+        "RX 6800 XT"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-45",
+      "kind": "gpu",
+      "name": "AMD Radeon RX 7700 XT",
+      "aliases": [
+        "AMD RX 7700 XT",
+        "Radeon RX 7700 XT",
+        "RX 7700 XT"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-46",
+      "kind": "gpu",
+      "name": "AMD Radeon RX 7800 XT",
+      "aliases": [
+        "AMD RX 7800 XT",
+        "Radeon RX 7800 XT",
+        "RX 7800 XT"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-47",
+      "kind": "gpu",
+      "name": "AMD Radeon RX 7900 XTX",
+      "aliases": [
+        "AMD RX 7900 XTX",
+        "Radeon RX 7900 XTX",
+        "RX 7900 XTX"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-48",
+      "kind": "gpu",
+      "name": "Intel Arc A750",
+      "aliases": [
+        "Arc A750"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-49",
+      "kind": "gpu",
+      "name": "Intel Arc B580",
+      "aliases": [
+        "Arc B580"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-50",
+      "kind": "gpu",
+      "name": "Intel UHD Graphics 630",
+      "aliases": [
+        "UHD Graphics 630"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    },
+    {
+      "id": "device-51",
+      "kind": "gpu",
+      "name": "AMD Radeon Graphics",
+      "aliases": [
+        "AMD Graphics",
+        "Radeon Graphics",
+        "Graphics"
+      ],
+      "advertised_memory": null,
+      "specification_url": null
+    }
+  ],
+  "datasets": [],
+  "measurements": []
 }
