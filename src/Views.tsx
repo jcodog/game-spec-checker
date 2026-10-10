@@ -312,9 +312,16 @@ export function AssessmentView({
             {(c.minimum.result !== "pass" ||
               c.recommended.result !== "pass") && (
               <p>
-                {c.minimum.result !== "pass"
-                  ? c.minimum.explanation
-                  : c.recommended.explanation}
+                <strong>
+                  {c.minimum.result !== "pass" ? "Minimum" : "Recommended"}:
+                </strong>{" "}
+                {["CPU", "GPU"].includes(c.component) &&
+                (c.minimum.result !== "pass" ? c.minimum : c.recommended)
+                  .result === "unknown"
+                  ? "The available performance evidence cannot confirm this requirement. Expand the evidence to see which comparisons are missing or uncertain."
+                  : c.minimum.result !== "pass"
+                    ? c.minimum.explanation
+                    : c.recommended.explanation}
               </p>
             )}
             <details>

@@ -93,6 +93,12 @@ component explanations are visible, and completed reports scroll into view.
 The desktop regression script now covers these interactions; its packaged-build
 execution status is recorded in the pull request after it runs.
 
+Commit 56c864c passed both Windows CI runs and production packaging, then the
+updated installed desktop regression and full restart persistence test. Its actual
+report passed automatic visibility and 880/1280 CSS-pixel overflow checks. Visual
+review found the exposed CPU/GPU uncertainty explanations too technical/repetitive;
+the follow-up keeps a plain summary visible and the full explanation expandable.
+
 ## Remaining verification gaps
 
 Native Save-dialog exports were not automated. Installer upgrades/uninstall,
