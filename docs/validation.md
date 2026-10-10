@@ -1,30 +1,37 @@
-# Validation record
+# Validation record for the overhaul
 
-Delivery validation is in progress. This file records completed checks rather
-than treating source code or workflow definitions as a successful build.
+Branch: feat/evidence-and-profile-overhaul. This document records completed checks,
+not intended checks. The original main workflows passing does not validate this branch.
 
-## Local checks, 10 October 2026
+## Completed locally
 
-- Rust core and CLI compile with Rust 1.99.0 on Windows x64.
-- All 22 Rust compatibility/profile tests pass without a GPU requirement.
-- Rust formatting passes.
-- TypeScript type checking and ESLint pass.
-- All five frontend profile/IPC boundary tests pass.
-- Vite production frontend build passes. Rollup reports harmless annotation
-  warnings in Zod dependency comments.
-- The actual native CLI scan detects CPU, physically installed RAM, GPU dedicated
-  memory, Windows build, volumes and connected displays. Local diagnostics are empty.
-- Actual CLI JSON report generation resolves a future installation directory to
-  its existing backing volume and produces all eight component assessments.
-- Hardware scan and report files remain under ignored `.local/`.
+- 39 Rust core regression tests passed, without requiring GPU hardware.
+- Core and CLI Clippy passed with warnings denied after the final test additions.
+- Frontend lint and TypeScript checks passed.
+- Nine frontend boundary/state-helper tests passed.
+- Frontend production build passed. Rollup reports harmless annotation warnings
+  inside the installed Zod package; errors were not suppressed.
+- A shared-core CLI build succeeded.
 
-## Local environment issue
+Core cases include aliases/variants, cross-vendor interval algorithm, separate
+workloads/scales, conflicting/overlapping evidence, alternatives, licensing guard,
+GB/GiB/ambiguous thresholds, provided-system regression, integrated/multi-GPU,
+API/Windows checks, storage and SSD policies, headroom, blank creation, migration,
+provenance, malformed JSON and corrupt-file isolation/persistence.
 
-The installed MSVC toolchain cannot load its PDB DLL from the expected location.
-Rust's bundled LLVM linker and explicit installed compatibility-library paths
-allow the core and CLI to build. A Tauri dependency's C++ compiler still encounters
-the PDB DLL issue. No system files or antivirus settings were changed.
+Synthetic comparison intervals exist only inside test functions and are explicitly
+labelled. They prove comparison behaviour, not real hardware equivalence. The
+reported-system fixture preserves the user's CPU/GPU/RAM/VRAM/build values while
+using artificial adapter IDs, driver text, volumes, display and available RAM.
+It is not a complete raw hardware export or benchmark dataset.
 
-Full desktop compilation, packaging, real WebView UI verification and GitHub CI
-results will be added after they complete. A usable installer has not yet been
-claimed or published by this record.
+## Environment limitation
+
+Local full Tauri compilation fails in the installed Visual C++ dependency build:
+vswhom-sys C1356 cannot find mspdbcore.dll. Core/CLI build with the available Rust
+LLVM linker and Windows libraries. No antivirus protections were disabled.
+
+The redesigned packaged application, installer and full GUI flow are pending
+Windows CI artifacts and subsequent actual execution. Their verification results
+must be added here only after those checks run. Screenshots of an old application
+must not be presented as screenshots of this redesign.

@@ -40,6 +40,7 @@ pub fn scan() -> SystemSnapshot {
                     DiskKind::HDD => MediaKind::Hdd,
                     _ => MediaKind::Unknown,
                 },
+                removable: Some(d.is_removable()),
             })
             .collect(),
         ..Default::default()
@@ -75,10 +76,13 @@ pub fn resolve_location(path: &str, volumes: &[Volume]) -> Result<Volume, String
     if !path.is_absolute() {
         return Err("Installation path must be absolute.".into());
     }
+    if path.exists() && !path.is_dir() {
+        return Err("Installation destination must be a directory, not a file.".into());
+    }
     // Resolve the nearest existing parent, including junctions and mount points.
     let existing = path
         .ancestors()
-        .find(|p| p.exists())
+        .find(|p| p.is_dir())
         .ok_or("No existing parent for installation path.")?;
     let canonical = existing
         .canonicalize()

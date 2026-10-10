@@ -1,105 +1,120 @@
 use crate::{
-    catalog::{compare, evidence},
+    catalog::{evidence, Catalog},
     *,
 };
 
-fn numeric(actual: Option<u64>, required: f64, unit: f64, label: &str) -> Evidence {
-    if required == 0.0 {
-        return evidence(
-            EvidenceResult::Pass,
-            "No numeric requirement.",
-            "Game profile",
-        );
-    }
-    match actual {
-        Some(value) => evidence(
-            if value as f64 >= required * unit {
-                EvidenceResult::Pass
-            } else {
-                EvidenceResult::Fail
-            },
-            &format!(
-                "{:.2} detected; {:.2} required ({label}).",
-                value as f64 / unit,
-                required
-            ),
-            "Native API measurement",
-        ),
-        None => evidence(
-            EvidenceResult::Unknown,
-            "Measurement unavailable.",
-            "Native scan",
-        ),
-    }
-}
-pub fn verdict(minimum: EvidenceResult, recommended: EvidenceResult) -> Verdict {
-    match (minimum, recommended) {
-        (EvidenceResult::Fail, _) => Verdict::BelowMinimum,
-        (EvidenceResult::Unknown, _) => Verdict::Unknown,
-        (EvidenceResult::Pass, EvidenceResult::Pass) => Verdict::MeetsRecommended,
-        (EvidenceResult::Pass, EvidenceResult::Fail) => Verdict::MeetsMinimum,
-        (EvidenceResult::Pass, EvidenceResult::Unknown) => Verdict::Unknown,
-    }
-}
-fn aggregate(results: impl Iterator<Item = EvidenceResult>) -> EvidenceResult {
-    let values: Vec<_> = results.collect();
+pub fn aggregate(values: impl Iterator<Item = EvidenceResult>) -> EvidenceResult {
+    let values: Vec<_> = values.collect();
     if values.contains(&EvidenceResult::Fail) {
         EvidenceResult::Fail
-    } else if values.contains(&EvidenceResult::Unknown) {
+    } else if values.is_empty() || values.contains(&EvidenceResult::Unknown) {
         EvidenceResult::Unknown
     } else {
         EvidenceResult::Pass
     }
 }
-fn windows(os: &OperatingSystem, req: &Requirements) -> Evidence {
-    if let (Some(edition), Some(build), Some(arch)) = (&os.edition, os.build, &os.architecture) {
-        if !edition.contains("Windows") || edition.contains("Server") {
-            return evidence(
-                EvidenceResult::Fail,
-                "A supported desktop Windows edition was not detected.",
-                "WMI Win32_OperatingSystem",
-            );
-        }
-        let version = if build >= 22000 {
-            11
-        } else if build >= 10240 {
-            10
-        } else {
-            0
-        };
-        let pass = req.windows_versions.contains(&version) && arch == &req.architecture;
-        evidence(
-            if pass {
-                EvidenceResult::Pass
-            } else {
-                EvidenceResult::Fail
-            },
-            &format!(
-                "{edition}, build {build}, {arch}. Accepted versions: {:?}, {}.",
-                req.windows_versions, req.architecture
-            ),
-            "WMI edition/build and native system architecture",
-        )
-    } else {
-        evidence(
-            EvidenceResult::Unknown,
-            "Windows edition, build or architecture unavailable.",
-            "Native scan",
-        )
+pub fn verdict(min: EvidenceResult, rec: EvidenceResult) -> Verdict {
+    match (min, rec) {
+        (EvidenceResult::Fail, _) => Verdict::BelowMinimum,
+        (EvidenceResult::Pass, EvidenceResult::Pass) => Verdict::MeetsRecommended,
+        (EvidenceResult::Pass, _) => Verdict::MeetsMinimum,
+        _ => Verdict::Unknown,
     }
 }
+pub fn capacity(actual: Option<u64>, required: Option<Capacity>, label: &str) -> Evidence {
+    let Some(required) = required else {
+        return evidence(
+            EvidenceResult::Unknown,
+            &format!("No {label} requirement entered. Check the publisher's specification."),
+            "Game profile",
+        );
+    };
+    if required.value == 0.0 {
+        return evidence(
+            EvidenceResult::Pass,
+            "Profile explicitly specifies no capacity requirement.",
+            "Game profile",
+        );
+    }
+    let Some(actual) = actual else {
+        return evidence(
+            EvidenceResult::Unknown,
+            &format!("Native {label} measurement unavailable."),
+            "Native scanner",
+        );
+    };
+    let (low, high) = required.bounds();
+    let result = if actual as f64 >= high {
+        EvidenceResult::Pass
+    } else if (actual as f64) < low {
+        EvidenceResult::Fail
+    } else {
+        EvidenceResult::Unknown
+    };
+    let mut e=evidence(result,&format!("{:.2} GB / {:.2} GiB reported by the API; {} required. GB = 1,000,000,000 bytes; GiB = 1,073,741,824 bytes. Shared graphics/system memory is not dedicated VRAM.",actual as f64/1e9,actual as f64/1073741824.0,required.label()),"Native API bytes and explicitly selected profile units");
+    if required.unit == CapacityUnit::AmbiguousGb {
+        e.explanation.push_str(" The published GB unit is ambiguous; confirm its meaning. Results between the decimal and binary thresholds stay uncertain.");
+        if result == EvidenceResult::Unknown {
+            e.confidence = Confidence::Unknown;
+        }
+    }
+    e
+}
+fn windows(os: &OperatingSystem, req: &Requirements) -> Evidence {
+    if req.windows_versions.is_empty() || req.architecture.is_none() {
+        return evidence(
+            EvidenceResult::Unknown,
+            "Windows versions or architecture are missing from this profile.",
+            "Game profile",
+        );
+    }
+    let (Some(edition), Some(build), Some(arch)) = (&os.edition, os.build, &os.architecture) else {
+        return evidence(
+            EvidenceResult::Unknown,
+            "Windows edition, build or architecture was not detected.",
+            "Native scanner",
+        );
+    };
+    let version = if build >= 22000 {
+        11
+    } else if build >= 10240 {
+        10
+    } else {
+        0
+    };
+    let compatible = edition.contains("Windows")
+        && !edition.contains("Server")
+        && req.windows_versions.contains(&version)
+        && req.architecture.as_ref() == Some(arch);
+    evidence(
+        if compatible {
+            EvidenceResult::Pass
+        } else {
+            EvidenceResult::Fail
+        },
+        &format!(
+            "{edition}, build {build}, {arch}; accepted Windows {:?}, {:?}.",
+            req.windows_versions, req.architecture
+        ),
+        "Native architecture and WMI Windows edition/build",
+    )
+}
 fn graphics(gpu: Option<&Gpu>, req: &Requirements) -> Evidence {
+    let Some(api) = req.graphics_api.as_deref() else {
+        return evidence(
+            EvidenceResult::Unknown,
+            "No graphics API requirement entered.",
+            "Game profile",
+        );
+    };
     let Some(gpu) = gpu else {
         return evidence(
             EvidenceResult::Unknown,
-            "Select a detected gaming GPU.",
-            "Native scan",
+            "Choose a detected gaming GPU.",
+            "Native scanner",
         );
     };
-    if !["DirectX 11", "DirectX 12"].contains(&req.graphics_api.as_str()) {
-        return evidence(EvidenceResult::Unknown, &format!("{} is not probed. Direct3D feature levels cannot establish support for another graphics API.", req.graphics_api), "Native scanner API coverage");
-    }
-    let result = match req.graphics_api.as_str() {
+    let api_result = match api {
         "DirectX 12" => match gpu.directx12 {
             Some(true) => EvidenceResult::Pass,
             Some(false) => EvidenceResult::Fail,
@@ -108,14 +123,17 @@ fn graphics(gpu: Option<&Gpu>, req: &Requirements) -> Evidence {
         "DirectX 11" if gpu.directx12 == Some(true) => EvidenceResult::Pass,
         _ => EvidenceResult::Unknown,
     };
-    if let Some(required) = &req.feature_level {
+    if !["DirectX 11", "DirectX 12"].contains(&api) {
+        return evidence(EvidenceResult::Unknown,&format!("{api} is not probed. A Direct3D feature level cannot establish another API's support."),"Native API coverage");
+    }
+    let result = if let Some(required) = req.feature_level.as_deref() {
         let levels = ["11_0", "11_1", "12_0", "12_1", "12_2"];
-        let measured = gpu
-            .feature_level
-            .as_deref()
-            .and_then(|s| levels.iter().position(|l| *l == s));
-        let requested = levels.iter().position(|l| l == required);
-        let fl = match (measured, requested) {
+        let feature = match (
+            gpu.feature_level
+                .as_deref()
+                .and_then(|v| levels.iter().position(|l| *l == v)),
+            levels.iter().position(|l| *l == required),
+        ) {
             (Some(a), Some(b)) => {
                 if a >= b {
                     EvidenceResult::Pass
@@ -125,29 +143,229 @@ fn graphics(gpu: Option<&Gpu>, req: &Requirements) -> Evidence {
             }
             _ => EvidenceResult::Unknown,
         };
-        return evidence(
-            aggregate([result, fl].into_iter()),
-            &format!(
-                "{} required; GPU D3D12 probe: {:?}; feature level {:?}, required {required}.",
-                req.graphics_api, gpu.directx12, gpu.feature_level
-            ),
-            "D3D12CreateDevice per adapter",
-        );
-    }
-    evidence(result,&format!("{} required; D3D12 device support: {:?}; maximum probed D3D12 feature level: {:?}. API version and feature level are distinct.",req.graphics_api,gpu.directx12,gpu.feature_level),"D3D12CreateDevice per adapter; other APIs unverified")
+        aggregate([api_result, feature].into_iter())
+    } else {
+        api_result
+    };
+    evidence(result,&format!("{api} required. D3D12 device support: {:?}; detected feature level {:?}; required feature level {:?}. Optional ray tracing/upscaling features require separate verification.",gpu.directx12,gpu.feature_level,req.feature_level),"D3D12CreateDevice probe on selected DXGI adapter")
 }
-fn ssd(volume: Option<&Volume>, required: bool) -> Evidence {
-    if !required {
+fn ssd(volume: Option<&Volume>, policy: SsdPolicy) -> Evidence {
+    if policy == SsdPolicy::Unspecified {
         return evidence(
             EvidenceResult::Pass,
-            "SSD is not required at this level.",
+            "No SSD condition declared at this level.",
             "Game profile",
         );
     }
-    match volume.map(|v|&v.media) {
-        Some(MediaKind::Ssd)=>evidence(EvidenceResult::Pass,"Backing volume is classified as SSD.","Native storage descriptor via sysinfo"),
-        Some(MediaKind::Hdd)=>evidence(EvidenceResult::Fail,"SSD requested; backing storage is HDD.","Native storage descriptor via sysinfo"),
-        _=>evidence(EvidenceResult::Unknown,"SSD requested; media type is unavailable. RAID, USB and virtual disks may be ambiguous.","Native storage descriptor via sysinfo"),
+    let result = match volume.map(|v| v.media) {
+        Some(MediaKind::Ssd) => EvidenceResult::Pass,
+        Some(MediaKind::Hdd) => EvidenceResult::Fail,
+        _ => EvidenceResult::Unknown,
+    };
+    evidence(result,&format!("SSD is {:?}; selected media is {:?}. A recommendation is advisory and does not fail hard compatibility.",policy,volume.map(|v|v.media)),"Native storage classification; unknown for some RAID/USB/virtual devices")
+}
+fn summarize(components: &[ComponentResult], minimum: bool) -> LevelSummary {
+    let values: Vec<_> = components
+        .iter()
+        .filter(|c| {
+            if minimum {
+                c.minimum_required
+            } else {
+                c.recommended_required
+            }
+        })
+        .map(|c| {
+            if minimum {
+                c.minimum.result
+            } else {
+                c.recommended.result
+            }
+        })
+        .collect();
+    LevelSummary {
+        result: aggregate(values.iter().copied()),
+        passed: values
+            .iter()
+            .filter(|v| **v == EvidenceResult::Pass)
+            .count(),
+        failed: values
+            .iter()
+            .filter(|v| **v == EvidenceResult::Fail)
+            .count(),
+        unknown: values
+            .iter()
+            .filter(|v| **v == EvidenceResult::Unknown)
+            .count(),
+    }
+}
+pub fn assess_with_catalog(
+    profile: &GameProfile,
+    system: &SystemSnapshot,
+    gpu_id: Option<&str>,
+    destination: &str,
+    volume: Option<Volume>,
+    catalog: &Catalog,
+) -> Assessment {
+    let gpu = gpu_id.and_then(|id| system.gpus.iter().find(|g| g.id == id));
+    let mut components = Vec::new();
+    for (component, kind) in [("CPU", "cpu"), ("GPU", "gpu")] {
+        let actual = if kind == "cpu" {
+            system.cpu.model.as_deref()
+        } else {
+            gpu.map(|g| g.model.as_str())
+        };
+        let workload = if kind == "cpu" {
+            profile.cpu_workload
+        } else {
+            profile.gpu_workload
+        };
+        let min = if kind == "cpu" {
+            &profile.minimum.cpu
+        } else {
+            &profile.minimum.gpu
+        };
+        let rec = if kind == "cpu" {
+            &profile.recommended.cpu
+        } else {
+            &profile.recommended.gpu
+        };
+        let minimum = catalog.compare(kind, actual, min, workload);
+        let recommended = catalog.compare(kind, actual, rec, workload);
+        components.push(ComponentResult {
+            component: component.into(),
+            verdict: verdict(minimum.result, recommended.result),
+            minimum,
+            recommended,
+            minimum_required: true,
+            recommended_required: true,
+        });
+    }
+    for (component, minimum, recommended) in [
+        (
+            "RAM",
+            capacity(system.ram_total_bytes, profile.minimum.ram, "RAM"),
+            capacity(system.ram_total_bytes, profile.recommended.ram, "RAM"),
+        ),
+        (
+            "VRAM",
+            capacity(
+                gpu.and_then(|g| g.dedicated_bytes),
+                profile.minimum.vram,
+                "dedicated VRAM",
+            ),
+            capacity(
+                gpu.and_then(|g| g.dedicated_bytes),
+                profile.recommended.vram,
+                "dedicated VRAM",
+            ),
+        ),
+        (
+            "Graphics API",
+            graphics(gpu, &profile.minimum),
+            graphics(gpu, &profile.recommended),
+        ),
+        (
+            "Windows",
+            windows(&system.os, &profile.minimum),
+            windows(&system.os, &profile.recommended),
+        ),
+        (
+            "Storage",
+            capacity(
+                volume.as_ref().map(|v| v.free_bytes),
+                profile.minimum.storage,
+                "installation space",
+            ),
+            capacity(
+                volume.as_ref().map(|v| v.free_bytes),
+                profile.recommended.storage,
+                "installation space",
+            ),
+        ),
+        (
+            "SSD",
+            ssd(volume.as_ref(), profile.minimum.ssd),
+            ssd(volume.as_ref(), profile.recommended.ssd),
+        ),
+    ] {
+        components.push(ComponentResult {
+            component: component.into(),
+            verdict: verdict(minimum.result, recommended.result),
+            minimum,
+            recommended,
+            minimum_required: component != "SSD" || profile.minimum.ssd == SsdPolicy::Required,
+            recommended_required: component != "SSD"
+                || profile.recommended.ssd == SsdPolicy::Required,
+        });
+    }
+    let minimum = summarize(&components, true);
+    let recommended = summarize(&components, false);
+    let mut warnings=vec!["Compatibility evidence is separate from graphics heuristics. Neither promises FPS or stability.".into()];
+    warnings.extend(system.diagnostics.clone());
+    warnings.extend(profile.migration_notes.clone());
+    if profile.provenance.kind == ProvenanceKind::Unverified
+        || profile.provenance.source_url.is_none()
+    {
+        warnings.push("Requirements have no verified source. Confirm this game's platform, version and published specifications.".into());
+    }
+    if gpu.is_none() {
+        warnings.push("Select the intended gaming GPU; display attachment does not prove which adapter a game uses.".into());
+    }
+    if let (Some(available), Some(required)) = (system.ram_available_bytes, profile.minimum.ram) {
+        if (available as f64) < required.bounds().1 {
+            warnings.push("Available RAM is below the entered minimum. Close background applications; installed RAM is assessed separately.".into());
+        }
+    }
+    if let Some(volume) = &volume {
+        if volume.removable == Some(true) {
+            warnings.push("The selected volume is removable. Check that the game supports this destination and keep it connected.".into());
+        }
+    }
+    if components.iter().any(|c| {
+        c.component == "SSD"
+            && ((profile.minimum.ssd != SsdPolicy::Unspecified
+                && c.minimum.result != EvidenceResult::Pass)
+                || (profile.recommended.ssd != SsdPolicy::Unspecified
+                    && c.recommended.result != EvidenceResult::Pass))
+    }) {
+        warnings.push("SSD advice: suitable solid-state storage was not confirmed. Recommended is a warning; required is a hard constraint.".into());
+    }
+    let required = [profile.minimum.storage, profile.recommended.storage]
+        .into_iter()
+        .flatten()
+        .map(|c| c.bounds().1)
+        .reduce(f64::max);
+    let headroom_bytes = volume
+        .as_ref()
+        .zip(required)
+        .map(|(v, r)| v.free_bytes as i128 - r.ceil() as i128);
+    if components
+        .iter()
+        .any(|c| c.component == "Storage" && c.minimum.result == EvidenceResult::Fail)
+    {
+        warnings.push("Do not install on this volume: it lacks the entered required installation space. Choose another location or free space yourself.".into());
+    } else if headroom_bytes.is_some_and(|h| h < 0) {
+        warnings.push("The recommended installation size exceeds free space. Minimum space may fit; review the publisher's installation options before proceeding.".into());
+    }
+    if let (Some(headroom), Some(buffer)) = (headroom_bytes, profile.installation_headroom) {
+        if headroom < (buffer.bounds().1.ceil() as i128) {
+            warnings.push(format!("The optional {} installation buffer is not available. This buffer is advisory and does not change compatibility.",buffer.label()));
+        }
+    }
+    Assessment {
+        schema_version: 2,
+        profile: profile.clone(),
+        system: system.clone(),
+        gpu_id: gpu_id.map(String::from),
+        destination: destination.into(),
+        volume,
+        headroom_bytes,
+        verdict: verdict(minimum.result, recommended.result),
+        minimum,
+        recommended,
+        components,
+        warnings,
+        catalog_version: catalog.version.clone(),
     }
 }
 pub fn assess(
@@ -157,120 +375,14 @@ pub fn assess(
     destination: &str,
     volume: Option<Volume>,
 ) -> Assessment {
-    let gpu = gpu_id.and_then(|id| system.gpus.iter().find(|g| g.id == id));
-    let mut components = Vec::new();
-    let min = &profile.minimum;
-    let rec = &profile.recommended;
-    let pairs = [
-        (
-            "CPU",
-            compare("cpu", system.cpu.model.as_deref(), &min.cpu),
-            compare("cpu", system.cpu.model.as_deref(), &rec.cpu),
-        ),
-        (
-            "GPU",
-            compare("gpu", gpu.map(|g| g.model.as_str()), &min.gpu),
-            compare("gpu", gpu.map(|g| g.model.as_str()), &rec.gpu),
-        ),
-        (
-            "RAM",
-            numeric(system.ram_total_bytes, min.ram_gib, 1073741824.0, "GiB RAM"),
-            numeric(system.ram_total_bytes, rec.ram_gib, 1073741824.0, "GiB RAM"),
-        ),
-        (
-            "VRAM",
-            numeric(
-                gpu.and_then(|g| g.dedicated_bytes),
-                min.vram_gib,
-                1073741824.0,
-                "GiB dedicated VRAM",
-            ),
-            numeric(
-                gpu.and_then(|g| g.dedicated_bytes),
-                rec.vram_gib,
-                1073741824.0,
-                "GiB dedicated VRAM",
-            ),
-        ),
-        ("Graphics API", graphics(gpu, min), graphics(gpu, rec)),
-        (
-            "Windows",
-            windows(&system.os, min),
-            windows(&system.os, rec),
-        ),
-        (
-            "Storage",
-            numeric(
-                volume.as_ref().map(|v| v.free_bytes),
-                min.storage_gb,
-                1e9,
-                "GB free storage",
-            ),
-            numeric(
-                volume.as_ref().map(|v| v.free_bytes),
-                rec.storage_gb,
-                1e9,
-                "GB free storage",
-            ),
-        ),
-        (
-            "SSD",
-            ssd(volume.as_ref(), min.ssd),
-            ssd(volume.as_ref(), rec.ssd),
-        ),
-    ];
-    for (component, minimum, recommended) in pairs {
-        components.push(ComponentResult {
-            component: component.into(),
-            verdict: verdict(minimum.result, recommended.result),
-            minimum,
-            recommended,
-        });
-    }
-    let overall = verdict(
-        aggregate(components.iter().map(|c| c.minimum.result)),
-        aggregate(components.iter().map(|c| c.recommended.result)),
-    );
-    let mut warnings=vec!["Requirements and benchmark approximations do not guarantee FPS, stability or game-specific feature support.".into()];
-    if gpu.is_none() {
-        warnings.push(
-            "No gaming GPU selected. Choose one explicitly, especially on multi-GPU systems."
-                .into(),
-        );
-    }
-    if volume.is_none() {
-        warnings.push("Installation location could not be mapped to a detected volume.".into());
-    }
-    if let Some(available) = system.ram_available_bytes {
-        if (available as f64) < min.ram_gib * 1073741824.0 {
-            warnings.push("Available RAM is below minimum. Close background applications; installed RAM is assessed separately.".into());
-        }
-    }
-    if components
-        .iter()
-        .any(|c| c.component == "SSD" && c.recommended.result != EvidenceResult::Pass)
-    {
-        warnings
-            .push("SSD is recommended or required, but suitable storage was not confirmed.".into());
-    }
-    let headroom_bytes = volume
-        .as_ref()
-        .map(|v| v.free_bytes as i128 - (rec.storage_gb * 1e9).ceil() as i128);
-    if headroom_bytes.is_some_and(|b| b < 0) {
-        warnings.push("Insufficient installation space on the selected volume.".into());
-    }
-    Assessment {
-        profile: profile.clone(),
-        system: system.clone(),
-        gpu_id: gpu_id.map(String::from),
-        destination: destination.into(),
+    assess_with_catalog(
+        profile,
+        system,
+        gpu_id,
+        destination,
         volume,
-        headroom_bytes,
-        verdict: overall,
-        components,
-        warnings,
-        catalog_version: crate::catalog::catalog().version,
-    }
+        &crate::catalog::catalog(),
+    )
 }
 pub fn recommend(
     report: &Assessment,
@@ -280,69 +392,5 @@ pub fn recommend(
     observed: Option<f64>,
     target: Option<f64>,
 ) -> Vec<SettingRecommendation> {
-    let default = match report.verdict {
-        Verdict::MeetsRecommended => "High",
-        Verdict::MeetsMinimum => "Medium",
-        Verdict::BelowMinimum => "Very Low",
-        Verdict::Unknown => "Low",
-    };
-    let selected = preset
-        .filter(|p| ["Very Low", "Low", "Medium", "High", "Ultra"].contains(p))
-        .unwrap_or(default);
-    let struggling = matches!((observed,target),(Some(a),Some(b)) if a.is_finite() && b.is_finite() && a>0.0 && b>0.0 && a<b);
-    let gpu = report
-        .gpu_id
-        .as_ref()
-        .and_then(|id| report.system.gpus.iter().find(|g| &g.id == id));
-    let vram = gpu
-        .and_then(|g| g.dedicated_bytes)
-        .map(|b| b as f64 / 1073741824.0);
-    let textures = match vram {
-        Some(n) if n >= 12.0 => "High",
-        Some(n) if n >= 8.0 => "Medium",
-        Some(n) if n >= 4.0 => "Low",
-        _ => "Very Low",
-    };
-    let mut settings = Vec::new();
-    let mut add = |setting: &str, value: String, reason: &str, confidence: &str| {
-        settings.push(SettingRecommendation {
-            setting: setting.into(),
-            value,
-            reason: reason.into(),
-            confidence: confidence.into(),
-        })
-    };
-    add("Preset",selected.into(),"Conservative starting point based on the weakest evidence. Ultra is an optional experiment, never inferred from requirements.","Low: heuristic");
-    add("Resolution",format!("{width} × {height}"),"Use a selected display mode. 1440p renders more pixels than 1080p; compare measured results.","High for selected dimensions; low for performance");
-    add("Render scale",if struggling || height>=1440 || report.verdict!=Verdict::MeetsRecommended {"75%"}else{"100%"}.into(),"Lower scaling reduces GPU pixel workload at the cost of clarity. Apply only if the game exposes this control.","Low: heuristic");
-    add("Textures",textures.into(),"Based on dedicated VRAM only. Texture budgets vary by game; lower this if stuttering persists.","Medium for capacity; low for game budget");
-    for (setting, reason) in [
-        ("Shadows", "Reducing shadow quality often lowers GPU cost."),
-        (
-            "View distance",
-            "Reduce this when CPU limits or dense scenes cause slowdowns.",
-        ),
-        (
-            "Effects",
-            "Lower effects to reduce GPU load in busy scenes.",
-        ),
-    ] {
-        add(
-            setting,
-            if struggling { "Low" } else { selected }.into(),
-            reason,
-            "Low: heuristic",
-        );
-    }
-    add(
-        "Anti-aliasing",
-        "TAA or low-cost option if available".into(),
-        "Avoid expensive supersampling until you have measured performance.",
-        "Low: game-dependent",
-    );
-    add("Upscaling","Check the game's supported options; try Quality mode if available".into(),"FSR availability depends on game integration. DLSS and XeSS variants require separate game and hardware verification. No supported technology is inferred from a GPU name.","Unknown until game support is confirmed");
-    if struggling {
-        add("Measured tuning","Lower shadows/effects first, then render scale; measure again".into(),"Your observed FPS is below your target. This is a tuning loop, not a predicted FPS calculation.","Medium: based on user measurement");
-    }
-    settings
+    crate::recommendations::recommend(report, width, height, preset, observed, target)
 }

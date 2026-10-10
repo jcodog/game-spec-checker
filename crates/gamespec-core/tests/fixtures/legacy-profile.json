@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "id": "icarus",
+  "name": "Icarus",
+  "version": "User-supplied sample",
+  "minimum": {
+    "cpu": [
+      "AMD Ryzen 5 2600",
+      "Intel Core i5-10500"
+    ],
+    "gpu": [
+      "NVIDIA GTX 1050 Ti"
+    ],
+    "ram_gib": 8,
+    "vram_gib": 4,
+    "windows_versions": [
+      10,
+      11
+    ],
+    "architecture": "x86_64",
+    "graphics_api": "DirectX 12",
+    "feature_level": null,
+    "storage_gb": 100,
+    "ssd": false
+  },
+  "recommended": {
+    "cpu": [
+      "AMD Ryzen 7 3700X",
+      "Intel Core i7-11700"
+    ],
+    "gpu": [
+      "NVIDIA RTX 2070"
+    ],
+    "ram_gib": 16,
+    "vram_gib": 8,
+    "windows_versions": [
+      10,
+      11
+    ],
+    "architecture": "x86_64",
+    "graphics_api": "DirectX 12",
+    "feature_level": null,
+    "storage_gb": 100,
+    "ssd": true
+  },
+  "notes": "Editable sample supplied by the project request. Verify against the publisher for your game version. DirectX 12 does not itself specify a minimum feature level. Storage uses decimal GB; RAM and VRAM use GiB."
+}

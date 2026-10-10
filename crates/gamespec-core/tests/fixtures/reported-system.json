@@ -1,0 +1,51 @@
+{
+  "cpu": {
+    "model": "AMD Ryzen 5 3600 6-Core Processor",
+    "manufacturer": "AuthenticAMD",
+    "architecture": "x86_64",
+    "physical_cores": 6,
+    "logical_threads": 12,
+    "capabilities": [
+      "AVX2"
+    ]
+  },
+  "ram_total_bytes": 51539607552,
+  "ram_available_bytes": 12884901888,
+  "gpus": [
+    {
+      "id": "amd",
+      "model": "AMD Radeon RX 7600",
+      "manufacturer": "AMD",
+      "dedicated_bytes": 8528596992,
+      "driver_version": "fixture driver",
+      "active": true,
+      "directx12": true,
+      "feature_level": "12_2"
+    }
+  ],
+  "os": {
+    "edition": "Microsoft Windows 11 Pro Insider Preview",
+    "version": "10.0.26100",
+    "build": 26220,
+    "architecture": "x86_64"
+  },
+  "volumes": [
+    {
+      "mount": "C:\\",
+      "name": "Fixture SSD",
+      "total_bytes": 1000000000000,
+      "free_bytes": 500000000000,
+      "file_system": "NTFS",
+      "media": "ssd"
+    }
+  ],
+  "displays": [
+    {
+      "name": "Fixture display",
+      "width": 1920,
+      "height": 1080,
+      "refresh_hz": 60
+    }
+  ],
+  "diagnostics": []
+}

@@ -1,89 +1,114 @@
-# Architecture
+# Architecture and evidence policy
 
-`gamespec-core` owns the serializable model, profile validation, hardware scanning,
-offline catalog, compatibility engine and graphics recommendation rules.
-`gamespec-cli` and the Tauri command layer call the same functions. React validates
-IPC responses and profile imports with Zod, then renders native results.
+The Rust core owns types, validation, migration, scanning, catalogue comparison,
+assessment and recommendations. Tauri and CLI supply a validated profile,
+native snapshot, explicit selected GPU, resolved volume and active catalogue.
+React validates IPC shapes and renders the same assessment, never a second engine.
 
-## Detection
+## Native detection
 
-- sysinfo uses native platform implementations for CPU topology, available memory
-  and volume information. Windows storage classification uses the storage
-  descriptor. A missing or ambiguous classification stays Unknown.
-- Installed RAM uses `GetPhysicallyInstalledSystemMemory`. Usable memory is not
-  substituted when that call fails, since firmware reservation can make usable
-  capacity smaller than the physically installed modules.
-- CPU capabilities use Rust's runtime x86 feature detection. They are informative,
-  not a performance ranking.
-- WMI reads Windows edition, build and driver versions. WMI is queried directly
-  through Rust, without launching PowerShell or WMIC.
-- DXGI enumerates hardware adapters and attached outputs. Dedicated VRAM comes
-  from `DXGI_ADAPTER_DESC1::DedicatedVideoMemory`, never shared memory or the
-  truncated WMI `AdapterRAM` field.
-- Direct3D 12 devices are probed on each DXGI adapter from feature level 12_2 down
-  to 11_0. Only an explicit unsupported result at the baseline becomes a negative
-  API result. Other errors remain Unknown. This is D3D12 support, not proof of
-  every optional DirectX feature or every game's runtime dependencies.
-- GDI enumerates active desktop display devices and their current modes.
-- Installation paths resolve their nearest existing ancestor, canonicalize
-  junctions, then call `GetVolumePathNameW`. A missing backing volume is an error,
-  never a guess based on a drive-letter prefix.
+Retain sysinfo for CPU topology, usable/available memory and storage classification.
+Installed physical RAM uses GetPhysicallyInstalledSystemMemory; a failed call
+stays unavailable instead of substituting usable memory. CPU ISA flags are
+informative and never performance rankings.
 
-Scan commands run on a blocking background worker. The UI exposes missing values
-and diagnostics. It requires explicit GPU selection on multi-GPU systems.
+Direct WMI queries read Windows edition/build and drivers. DXGI enumerates
+hardware adapters and outputs. DedicatedVideoMemory supplies dedicated VRAM;
+shared RAM and AdapterRAM are excluded. D3D12CreateDevice probes each adapter's
+feature levels independently. Unsupported baseline is a negative API result;
+other API errors are unknown. GDI supplies current active display modes.
 
-## Evidence and aggregation
+Resolve destinations through their nearest existing directory, canonicalise
+junctions, then call GetVolumePathNameW. Relative paths, existing files and
+unrecognised backing volumes are errors. Volume capacity, free bytes, file system,
+media and removability belong to the actual backing volume. Scans run on a
+blocking worker. No PowerShell or privileged access is used by the application.
 
-Model identification uses exact strings and explicit aliases. It preserves
-variant suffixes, including SUPER, XT and laptop variants. No substring matching
-or inferred generation ordering is allowed.
+## Profiles and units
 
-The initial GPU dataset contains a few factual Time Spy Graphics measurements
-from Tweakers' 24 May 2023 RX 7600 review. Scores are used only within that test
-set. The ratio must be at least 1.25 to pass or at most 0.75 to fail. Intermediate
-ratios are Unknown. The band is an application policy, not a statistical
-confidence interval. Synthetic performance is an approximation of game
-performance and says nothing about ray tracing or proprietary API features.
+Schema 2 uses optional typed Capacity values, independent SSD policies, provenance,
+version/platform, source/date and CPU/GPU workloads. Null means missing evidence;
+explicit zero means a zero capacity constraint. GB and GiB retain exact meanings.
+Ambiguous GB produces an interval from decimal to binary bytes and stays unknown
+when a native capacity lies between them. API bytes and marketed capacity are
+separate properties. The scanner does not infer marketed memory by rounding.
 
-RX 7600 versus RTX 2070 has a ratio of about 1.19, so it is Unknown. The GTX 1050 Ti
-and initial CPUs have identity entries only. Cross-model CPU equivalence and
-comparisons involving that GTX are Unknown until suitable evidence is added.
+Blank profiles originate in Rust and contain no requirements. Duplication is an
+explicit frontend action with a new ID and user-entered provenance. Import always
+opens a new-ID draft and never overwrites an existing profile. Rust remains the
+authority for semantic validation, calendar dates and capacity consistency.
 
-An alternative requirement passes when any alternative passes. It fails only
-when all alternatives have evidence of failure. A missing alternative leaves
-the result Unknown unless another alternative passes.
+Schema 1 reads preserve the previous GiB interpretation and attach a review
+warning about units and the former Icarus-copying bug. Writes occur only on save.
+File identity must match its filename. Bad files produce diagnostics individually.
+Unique temporary siblings and rename prevent partial saved JSON; a Tauri mutex
+serialises writes. First-load seeding uses a marker so removed samples stay removed.
 
-Each component retains independent minimum and recommended evidence. A known
-minimum failure produces Below minimum even if other components are unknown.
-All minimum and recommended checks must pass to claim Meets recommended.
-Minimum passes with a known recommended failure produce Meets minimum.
-Otherwise the headline stays Unknown, with confirmed minimum checks still shown.
-Recommended equivalence never silently proves a different minimum model.
+## Catalogue contract
 
-RAM and VRAM use GiB, storage uses decimal GB. Installed RAM is assessed;
-available RAM can add a warning. Headroom subtracts the recommended storage
-requirement from free space and excludes updates and installer temporary files.
+Schema 2 separates devices, datasets and measurements. Device aliases are unique
+per component kind and preserve variants. Dataset ID identifies a single comparable
+test scale/context, not a publisher's entire site. Required metadata includes:
 
-## Boundaries and persistence
+- Workload, metric and higher/lower-is-better direction.
+- Publication date, source URL, test context and methodology.
+- License/permission declaration and explicit redistribution clearance.
+- Documented uncertainty method and decision eligibility.
 
-Rust validates profiles on import, save and assessment. IDs cannot contain path
-separators. Unknown schema versions and fields are rejected. Numbers must be
-finite and bounded. Recommended capacities cannot be lower than minimum.
+Each measurement identifies a device/dataset, positive low/high interval and sample
+count. These bounds must come from reviewed evidence, not guessed safety margins.
+Two devices compare only within the same eligible dataset of the selected workload.
+For higher-is-better, the performance ratio is actual.low/required.high through
+actual.high/required.low. Lower-is-better inverts the ratio. The interval entirely
+at or above 1 passes, entirely below 1 fails, and overlapping 1 stays unknown.
+All available comparable contexts must agree to make a confirmed result.
+Missing or conflicting evidence remains unknown. CPU gaming, single-thread and
+multi-thread are distinct. GPU raster, ray tracing, synthetic and compute are distinct.
 
-Tauri stores profiles under the current user's application data directory.
-Writes use a temporary sibling and rename, serialized with a store mutex. The
-Icarus sample is available even before any files exist. Corrupt saved profiles
-produce a visible error with their path rather than silently disappearing.
-Export destinations come from a native Save dialog, not an unrestricted frontend
-filesystem API. Profile imports use an explicitly selected local file.
+The catalogue validator checks structure, alias uniqueness, bounds, references and
+metadata. It cannot authenticate claimed measurements or licenses. Local imports
+therefore require source review before the desktop applies them. CLI operators
+explicitly select reviewed data with --catalog. Invalid CLI data is an error.
+Invalid saved desktop data is preserved, a visible diagnostic explains rejection,
+and the bundled baseline is explicitly selected instead.
 
-The application has no network code for hardware data, telemetry or profile
-lookups. CSP limits frontend connections to Tauri IPC. Benchmark links open only
-when selected by the user. Reports include hardware and installation paths.
+The baseline has 52 identities and no performance measurements. The earlier
+synthetic scores were removed, not relabelled as game performance. This means
+common cross-model CPU/GPU comparisons are still an outstanding product requirement.
+Unit tests use explicitly labelled synthetic algorithm fixtures that are never
+bundled into production. See the audit for source/licensing research.
 
-## Platform extension
+## Verdicts and recommendations
 
-The model and engine are independent of Windows. Windows-specific scanning is
-behind `cfg(windows)`. Other platforms return basic sysinfo measurements and
-explicitly report unimplemented GPU, display and OS support. The shipped
-desktop product and workflows currently target Windows x64 only.
+Each component carries minimum/recommended evidence, confidence and mandatory
+flags. Any confirmed mandatory failure fails that level. Otherwise any missing
+critical evidence makes the level unknown. All mandatory checks must pass for a
+pass. SSD Recommended is advisory and excluded; SSD Required participates.
+
+Minimum Pass and Recommended Unknown retains Meets minimum, with recommended
+uncertainty visible separately. Minimum failure gives Below minimum. Unknown
+minimum stays unconfirmed. A recommended CPU identity does not invent evidence
+against a different minimum CPU model.
+
+Graphics recommendations use individual GPU/CPU checks, requirements-relative
+VRAM, available RAM, selected pixel count and user measurements. Disk/OS failures
+do not set quality. Suggestions are generic trials, not benchmark-based FPS or
+verified game presets. Upscalers/frame generation/ray tracing remain disabled
+until both hardware features and game support are verified. No such feature
+verification or game-specific guidance database exists in this stage.
+
+## UI and command boundaries
+
+Dashboard, library, checker/report and settings are distinct screens. Views and
+editor components are separate from application orchestration. Changed assessment
+inputs invalidate the previous report. Async recommendation responses are ignored
+when superseded. Errors are visible; missing scanner values are labelled.
+
+Exports use a native Save dialog; no unrestricted filesystem command is exposed.
+Profiles and catalogues are bounded JSON, and IDs cannot contain path separators
+or reserved Windows device names. The frontend CSP allows local IPC and no hardware
+network upload. Normal operation requires no administrator rights.
+
+Full Windows detection and packaging target x64. The scanner retains cfg platform
+boundaries for future ports. Other platforms report incomplete GPU/display/OS
+support rather than fake Windows values.

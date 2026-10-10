@@ -1,148 +1,130 @@
 # GameSpec Checker
 
-An offline Windows desktop app that scans your hardware and compares it with
-game requirements you enter. Rust handles scanning and assessment. Tauri 2 and
-React provide the interface. A CLI uses the same Rust core.
+An offline Windows desktop application that inspects real hardware and compares
+it with game requirements entered by the user. Rust owns scanning, profiles,
+compatibility and graphics heuristics. Tauri 2 and React provide the desktop UI.
+The CLI calls the same assessment engine.
 
-GameSpec reports **Meets recommended**, **Meets minimum**, **Below minimum**, or
-**Unknown / insufficient evidence**. Every component includes its minimum and
-recommended evidence. It does not predict FPS.
+This branch is an engineering overhaul in progress. It fixes profile creation,
+units, evidence boundaries, verdict aggregation and the interface. It does **not**
+yet fulfil the performance coverage acceptance criterion. The bundled catalogue
+contains 52 hardware identities and **zero decision-eligible benchmark measurements**.
+Cross-model comparisons remain uncertain until suitable evidence is installed.
+Do not treat this as a completed production release.
 
-## Supported systems
+See the [audit](docs/overhaul-audit.md), [validation record](docs/validation.md)
+and [continuation plan](docs/continuation.md).
 
-Windows 10/11 x64 with Microsoft Edge WebView2. Normal operation and the
-current-user installer do not require administrator permissions. GPU detection
-uses DXGI and Direct3D, with direct WMI queries for Windows and driver details.
-PowerShell is not used by the application to scan hardware.
+## Windows installation
 
-The shared core has a platform extension point, but full detection and the
-desktop release currently target Windows only. Older Windows versions, Windows
-Server and ARM64 are not supported targets.
+Supported target: Windows 10/11 x64 with Microsoft Edge WebView2. The current-user
+NSIS installer and normal operation require no administrator access. Builds are
+unsigned. WebView2 must be installed; setup can download its bootstrapper if needed.
+Runtime scanning, local profiles and assessment work offline.
 
-## Installation
-
-If a release has been published, download the GameSpec Checker Windows setup
-executable from this repository's Releases page, or download a build artifact
-from the Windows production build workflow. Install for your current user, then
-open GameSpec Checker. WebView2 must be present; the installer can download its
-bootstrapper when needed. Runtime scanning and assessment work offline.
-
-The build is unsigned. Signing requires a publisher certificate and is not
-configured. For a local build, follow Development below. A release workflow
-definition is not proof that a release was published.
+Download build artifacts from the existing Windows production workflow when its
+run has succeeded. A published GitHub release is a separate delivery step; no
+release is implied by a workflow definition or successful compilation.
 
 ## Using the application
 
-1. Open Your system and let the native scan finish. Review the CPU, installed
-   physical RAM, dedicated VRAM, Direct3D support, volumes and displays.
-2. Choose a game from the library or add its minimum and recommended
-   requirements. Put CPU/GPU alternatives on separate lines.
-3. Select your intended gaming GPU. Multi-GPU systems require an explicit
-   choice. The adapter driving a display may differ from the one used by a game.
-4. Select a volume or enter an absolute installation path. Windows resolves the
-   backing volume through existing parent directories, junctions and mount points.
-5. Check compatibility. Expand component rows to inspect the evidence. Review
-   storage headroom and SSD warnings.
-6. Try the graphics recommendations for 1080p or 1440p, select a connected
-   display, and optionally enter observed and target FPS to guide further tuning.
+1. Review Your system. Dedicated VRAM is reported separately from physical RAM.
+2. Create a blank game profile or import JSON. Enter a real game/version/platform,
+   alternatives, capacities with units, source URL and verification date. Imported
+   profiles receive a new ID and open for review before saving.
+3. Choose the game, intended GPU, installation drive or absolute destination, and
+   connected display/output resolution. Multi-GPU selection is explicit.
+4. Run the assessment. Minimum and recommended each show confirmed passes,
+   confirmed failures and missing evidence. Expand components for sources,
+   confidence and technical explanations. SSD advice is separate from mandatory SSD.
+5. Review installation space and remaining headroom. No game is installed and no
+   files or disk partitions are changed.
+6. Try the generic initial graphics suggestions. Optionally provide measured FPS
+   and a target to guide another trial. The app makes no frame-rate prediction.
 
-Profiles can be imported/exported as JSON. Import opens the editor for review
-before saving. Copy and export buttons include the complete JSON assessment,
-hardware snapshot, destination and source references. Export uses a native Save
-dialog. The app never installs games, deletes game files or changes partitions.
+Search, edit, duplicate, remove and export profiles in the game library. Removal
+requires confirmation in the app. Copy/export the full assessment as JSON.
+Settings includes theme selection, local catalogue preview/update/reset and
+hardware diagnostics export. Dark, light and Windows appearance are supported.
 
-The editable Icarus sample uses the requirements supplied in the project
-request. It is not an automatically updated publisher requirements database.
-Verify requirements for your game's version.
+The editable Icarus sample comes from the project request, not a verified official
+requirements source. Source labels are supplied by profile authors. Even a label
+of official does not mean GameSpec authenticated it.
 
-## Accuracy and limitations
+## Evidence and limitations
 
-- Exact model identity or an explicit catalog alias verifies a named model.
-  Model numbers, vendor, generations, cores and clocks never rank performance.
-- The initial comparative GPU dataset contains six attributed Time Spy Graphics
-  scores from [Tweakers' RX 7600 review, 24 May 2023](https://tweakers.net/reviews/11132/amd-radeon-rx-7600-weinig-vernieuwend-amper-sneller.html).
-  Comparisons are approximations. A ratio of at least 1.25 passes; a ratio of at
-  most 0.75 fails. Intermediate ratios are Unknown. The 25% band is a product
-  policy, not a statistical confidence interval.
-- RX 7600 versus RTX 2070 is about 1.19 in that dataset, so GameSpec reports
-  Unknown rather than failing because the vendors differ or claiming equivalence.
-- The initial CPU catalog supports exact identities only. Cross-model CPU
-  equivalence remains Unknown. GTX 1050 Ti has an identity entry but no comparable
-  score in this test set. Icarus can therefore contain Unknown CPU/GPU checks on
-  otherwise capable PCs. The report identifies the missing evidence.
-- Missing data, uncatalogued hardware, laptop variants and incompatible datasets
-  stay Unknown. Recommended identity does not silently prove a different minimum
-  model. A known minimum failure still produces Below minimum.
-- Dedicated VRAM comes from DXGI `DedicatedVideoMemory`, never total available
-  graphics memory, shared RAM or WMI's 32-bit `AdapterRAM` field.
-- Direct3D 12 device support and the maximum probed feature level are measured
-  separately. DirectX 11 is confirmed only when the D3D12 probe proves suitable
-  support. Vulkan, OpenGL, optional DirectX features and proprietary upscalers
-  are not probed in this version. Their requirements may remain Unknown.
-- SSD/HDD classification can be unknown for RAID, USB and virtual storage.
-  Displays reflect current desktop modes. No EDID model or HDR capability is
-  inferred. Driver versions are joined only when WMI and DXGI names match uniquely.
-- Storage uses decimal GB; memory uses GiB. Headroom excludes updates, temporary
-  installer files and decompression. Free space is a snapshot.
-- Graphics recommendations are explained heuristics. They do not prove a game
-  supports a setting or upscaler and never promise a specific FPS. Ultra is a
-  manually selectable experiment.
+- Models are identified by conservative normalisation and explicit aliases.
+  Variant suffixes remain distinct. Model numbers, generations, clocks, prices
+  and vendor names never rank performance.
+- Comparison datasets declare workload, metric, direction, test context,
+  publication date, source, methodology, uncertainty and redistribution license.
+  Both devices must have intervals in the same dataset. Overlap, disagreement,
+  missing evidence or uncleared data stays Unknown. Different workloads and
+  scales are never substituted. A passing alternative is sufficient; failure
+  requires evidence against every alternative.
+- The old six synthetic scores were removed because redistribution rights were
+  not established. Blender's CC0 rendering data does not establish gaming
+  performance; openly licensed estimated tiers reviewed so far do not supply
+  comparable measurements. See [benchmark research](docs/overhaul-audit.md).
+- The engine supports cross-vendor measurements, but the bundled baseline cannot
+  yet decide Ryzen 5 3600 versus the Icarus CPUs, or RX 7600 versus its NVIDIA GPUs.
+  Hardware identity coverage is not benchmark coverage.
+- GB is 1,000,000,000 bytes; GiB is 1,073,741,824 bytes. Requirements retain their
+  selected units. Ambiguous GB uses both bounds: between them remains uncertain.
+  DXGI-reported 8,528,596,992 bytes meets 8 GB, falls below 8 GiB, and is uncertain
+  for ambiguous 8 GB. Marketed capacity is not inferred by rounding API results.
+- DXGI DedicatedVideoMemory supplies VRAM. Shared memory, physical RAM and WMI's
+  truncated AdapterRAM are never substituted. Advertised capacity metadata is
+  supported in the catalogue, but official specifications are not yet populated.
+- Direct3D 12 device support and feature levels are probed on the selected adapter.
+  Vulkan, OpenGL, ray-tracing features, DLSS/FSR/XeSS integration and frame
+  generation are not verified. No enabled upscaler is recommended without checks.
+- SSD/HDD can be unknown for RAID, USB and virtual storage. Destination resolution
+  follows existing ancestors, junctions and mount points. Free space is a snapshot;
+  optional installation headroom is advisory and cannot predict update size.
+- Graphics recommendations are generic heuristics using independent CPU/GPU
+  evidence, requirements-relative VRAM, available RAM, resolution and measurements.
+  No game-specific presets are claimed. Storage failures do not change quality.
 
-The [architecture and evidence policy](docs/architecture.md) documents the
-scanner APIs, aggregation rules, failure handling and extension points. The
-[offline catalog](data/hardware-catalog.json) contains each source and metric.
+## Local data and migration
 
-## Privacy and local files
+Profiles are saved under the Tauri application data directory, normally
+`%APPDATA%\io.github.jcodog.gamespec\profiles`. A reviewed custom catalogue is
+`catalog.json` in the parent directory. `GAMESPEC_DATA_DIR` can select an absolute
+alternative directory at launch for isolated verification or portable use.
+Theme preference remains in the WebView's local storage.
 
-No telemetry, advertisements, accounts or automatic hardware uploads. No
-hardware information is sent to external services by the application. Selecting
-a benchmark link is a user-initiated web action.
+Schema 1 profiles migrate in memory. Their existing GiB values are preserved,
+and a warning asks the user to review units and possible Icarus template copying.
+The application never silently changes an AION 2 profile into a different game.
+Save writes schema 2. Back up old profiles before saving or downgrading: the old
+application cannot read schema 2. Corrupt files are isolated and reported without
+preventing healthy profiles from loading. Icarus is seeded once and may be removed.
 
-Profiles are stored in the current user's Tauri application data directory,
-normally `%APPDATA%\io.github.jcodog.gamespec\profiles`. Theme preference is in
-the WebView's local storage. Reports include hardware and installation paths,
-so review exported files before sharing them. Corrupt profiles produce a visible
-error with their path; hardware detection can still complete.
+Catalogue imports are bounded and validated, then shown for review. Validation
+cannot authenticate license claims or benchmark methodology. Only install data
+whose sources, intervals and reuse permission you have checked. There is no
+scraping, automatic online refresh or hardware upload.
+
+No telemetry, accounts or advertisements. Exports include hardware and local
+paths; review them before sharing. Export writes to a user-selected native Save
+dialog destination. Source URLs can be copied for independent review.
 
 ## Development
 
-Install [Rust stable and the Windows C++ Build Tools](https://v2.tauri.app/start/prerequisites/),
-WebView2 and Bun 1.3.14. Use the x64 MSVC Rust toolchain. Do not add npm, Yarn or
-pnpm lockfiles.
+Install Rust stable with x64 MSVC Windows C++ Build Tools, WebView2 and Bun 1.3.14.
+Use the committed Cargo.lock and bun.lock; no competing package manager.
 
 ```powershell
 bun install --frozen-lockfile
 bun run desktop
-```
-
-For a production installer and desktop executable:
-
-```powershell
 bun run desktop:build
 cargo build --release -p gamespec-cli --locked
 ```
 
-The desktop output is `target/release/gamespec-checker.exe`, the CLI is
-`target/release/gamespec.exe`, and the installer is under
-`target/release/bundle/nsis/`. A browser preview cannot access native hardware
-and explicitly reports that limitation.
-
-## CLI
-
-```powershell
-gamespec scan
-gamespec scan --output system.json
-gamespec check data/icarus.json --path "D:\Games\Icarus" --gpu "ADAPTER_ID"
-gamespec report data/icarus.json --path "D:\Games\Icarus" --gpu "ADAPTER_ID" --output report.json
-```
-
-Get adapter IDs from `scan`. With one adapter, the CLI selects it automatically.
-With multiple adapters, omitting `--gpu` produces Unknown GPU checks. Output is
-JSON. Invalid profiles, GPU IDs and unresolved locations exit with code 1.
-Below-minimum and unknown assessments are valid reports, not command failures.
-From source, use `cargo run -p gamespec-cli --` before the command.
-
-## Tests and checks
+Desktop: `target/release/gamespec-checker.exe`. CLI: `target/release/gamespec.exe`.
+Installer: `target/release/bundle/nsis/*-setup.exe`. Browser previews cannot scan
+hardware and show an explicit native-runtime error.
 
 ```powershell
 cargo fmt --all -- --check
@@ -154,44 +136,52 @@ bun run test
 bun run build
 ```
 
-Core fixtures cover AMD, Intel, NVIDIA, multi-GPU, missing properties and
-insufficient storage. Tests exercise comparisons, alternatives, all verdict
-combinations, numeric thresholds, Windows/API checks, SSD requirements,
-recommendations and persistence. They need no GPU. Frontend tests validate
-imported profiles and native IPC shapes.
+Windows CI runs these checks and builds the desktop executable. The production
+workflow also builds the current-user installer, CLI and SHA-256 checksums.
+Successful compilation alone does not verify installation or application behaviour.
 
-For real desktop UI verification, build and launch the app with WebView2
-debugging explicitly enabled in a development environment:
+## CLI
 
 ```powershell
-$env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = "--remote-debugging-port=9222"
+gamespec scan --output system.json
+gamespec check data/icarus.json --path "D:\Games\Icarus" --gpu "ADAPTER_ID"
+gamespec report data/icarus.json --path "D:\Games\Icarus" --gpu "ADAPTER_ID" --output report.json
+gamespec --catalog reviewed-catalog.json check data/icarus.json --path "D:\Games\Icarus"
+```
+
+Get IDs from scan. With one GPU the CLI selects it; with several, GPU checks stay
+uncertain unless selected. Invalid profiles, locations and catalogues exit 1.
+Below-minimum and uncertain assessments are valid JSON reports. From source,
+use `cargo run -p gamespec-cli --` before the command.
+
+## Real desktop verification
+
+Use a dedicated test instance to avoid changing your own profiles. Node executes
+the installed Playwright test transport because Bun's CDP WebSocket connection
+failed in this environment. Bun remains the package manager and script launcher.
+
+```powershell
+$env:GAMESPEC_DATA_DIR = "$PWD\.local\desktop-test-data"
+$env:WEBVIEW2_USER_DATA_FOLDER = "$PWD\.local\desktop-test-webview"
+$env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = "--remote-debugging-port=9223"
 Start-Process -WindowStyle Hidden target/release/gamespec-checker.exe
+$env:GAMESPEC_CDP_URL = "http://127.0.0.1:9223"
 bun run test:desktop
-Remove-Item Env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS
 ```
 
-The test connects to the actual Tauri WebView and uses real scanning and IPC.
-It creates, edits and removes a temporary profile, checks a report, changes
-graphics settings and exercises both themes. Results and a screenshot stay in
-ignored `.local/`. Enable debugging only for local development.
+This test uses the actual Tauri IPC and scanner. It checks blank creation,
+editing, reload persistence, search, import isolation, removal, assessments,
+measured tuning, themes, catalogue validation/review and layout overflow. Local
+screenshots and reports stay in ignored `.local/`. Remove debugging environment
+variables and close the test instance after verification. Debugging is only for
+local testing. The test directory should be fresh.
 
-Windows CI checks Rust formatting, tests and Clippy, frontend linting/types/tests,
-and a production desktop build. The production workflow builds the current-user
-NSIS installer, CLI and SHA-256 checksums. Tag builds create a draft GitHub
-release; workflow dispatch provides downloadable Actions artifacts.
+## Structure and licence
 
-## Project structure
+`crates/gamespec-core` holds models, scanner, catalogue, profiles, pure assessment
+and separate recommendations. `crates/gamespec-cli` and `src-tauri` are adapters.
+`src` contains typed IPC, application state, requirements editor and report views.
+`data` is the bundled baseline. `docs` records architecture, audit and validation.
 
-```text
-crates/gamespec-core/  Models, native scanner, profiles, engine and tests
-crates/gamespec-cli/   Shared-core command-line interface
-src-tauri/            Tauri commands, permissions and installer configuration
-src/                  React UI and validated IPC boundary
-data/                 Editable Icarus sample and attributed offline catalog
-docs/                 Architecture, evidence policy and validation record
-scripts/              Fixture generation and real desktop UI verification
-.github/workflows/    Windows CI and production artifacts
-```
-
-MIT licensed. Benchmark facts retain their attribution; the MIT licence does not
-grant rights to third-party articles or charts.
+Code is MIT licensed. A code licence never grants rights to third-party benchmark
+articles, charts or databases.
