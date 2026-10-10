@@ -1,0 +1,61 @@
+{
+  "cpu": {
+    "model": "AMD Ryzen 7 3700X 8-Core Processor",
+    "manufacturer": "AuthenticAMD",
+    "architecture": "x86_64",
+    "physical_cores": 8,
+    "logical_threads": 16,
+    "capabilities": [
+      "AVX2"
+    ]
+  },
+  "ram_total_bytes": 17179869184,
+  "ram_available_bytes": 12884901888,
+  "gpus": [
+    {
+      "id": "integrated",
+      "model": "Intel UHD Graphics 630",
+      "manufacturer": "Intel",
+      "dedicated_bytes": 0,
+      "driver_version": "fixture driver",
+      "active": true,
+      "directx12": true,
+      "feature_level": "12_1"
+    },
+    {
+      "id": "discrete",
+      "model": "AMD Radeon RX 7600",
+      "manufacturer": "AMD",
+      "dedicated_bytes": 8589934592,
+      "driver_version": "fixture driver",
+      "active": false,
+      "directx12": true,
+      "feature_level": "12_1"
+    }
+  ],
+  "os": {
+    "edition": "Microsoft Windows 11 Pro",
+    "version": "10.0.26100",
+    "build": 26100,
+    "architecture": "x86_64"
+  },
+  "volumes": [
+    {
+      "mount": "C:\\",
+      "name": "Fixture SSD",
+      "total_bytes": 1000000000000,
+      "free_bytes": 500000000000,
+      "file_system": "NTFS",
+      "media": "ssd"
+    }
+  ],
+  "displays": [
+    {
+      "name": "Fixture display",
+      "width": 1920,
+      "height": 1080,
+      "refresh_hz": 60
+    }
+  ],
+  "diagnostics": []
+}

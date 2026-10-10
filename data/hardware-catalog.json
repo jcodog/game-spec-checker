@@ -1,0 +1,17 @@
+{
+  "version": "2026-10-10.1",
+  "method": "Exact identity or conservative synthetic benchmark comparison. Cross-model results are approximations, not game benchmarks. Ratios inside 0.75 to 1.25 are unknown. No inference across datasets. No laptop/desktop aliasing.",
+  "entries": [
+    {"kind":"gpu","name":"AMD Radeon RX 7600","aliases":["Radeon RX 7600"],"dataset":"tweakers-2023-timespy","score":10748,"source":"https://tweakers.net/reviews/11132/amd-radeon-rx-7600-weinig-vernieuwend-amper-sneller.html","label":"Tweakers, Reinoud Dik, 24 May 2023, Time Spy Graphics"},
+    {"kind":"gpu","name":"NVIDIA GeForce RTX 2070","aliases":["NVIDIA RTX 2070","GeForce RTX 2070","RTX 2070"],"dataset":"tweakers-2023-timespy","score":9010,"source":"https://tweakers.net/reviews/11132/amd-radeon-rx-7600-weinig-vernieuwend-amper-sneller.html","label":"Tweakers, Reinoud Dik, 24 May 2023, Time Spy Graphics"},
+    {"kind":"gpu","name":"NVIDIA GeForce RTX 3070","aliases":["RTX 3070"],"dataset":"tweakers-2023-timespy","score":13669,"source":"https://tweakers.net/reviews/11132/amd-radeon-rx-7600-weinig-vernieuwend-amper-sneller.html","label":"Tweakers, Reinoud Dik, 24 May 2023, Time Spy Graphics"},
+    {"kind":"gpu","name":"NVIDIA GeForce RTX 3060","aliases":["RTX 3060"],"dataset":"tweakers-2023-timespy","score":8752,"source":"https://tweakers.net/reviews/11132/amd-radeon-rx-7600-weinig-vernieuwend-amper-sneller.html","label":"Tweakers, Reinoud Dik, 24 May 2023, Time Spy Graphics"},
+    {"kind":"gpu","name":"AMD Radeon RX 6600","aliases":["Radeon RX 6600","RX 6600"],"dataset":"tweakers-2023-timespy","score":8121,"source":"https://tweakers.net/reviews/11132/amd-radeon-rx-7600-weinig-vernieuwend-amper-sneller.html","label":"Tweakers, Reinoud Dik, 24 May 2023, Time Spy Graphics"},
+    {"kind":"gpu","name":"Intel Arc A770","aliases":["Intel Arc A770 Graphics","Arc A770"],"dataset":"tweakers-2023-timespy","score":13203,"source":"https://tweakers.net/reviews/11132/amd-radeon-rx-7600-weinig-vernieuwend-amper-sneller.html","label":"Tweakers, Reinoud Dik, 24 May 2023, Time Spy Graphics"},
+    {"kind":"gpu","name":"NVIDIA GeForce GTX 1050 Ti","aliases":["NVIDIA GTX 1050 Ti","GTX 1050 Ti"],"dataset":null,"score":null,"source":"Profile identity only","label":"No comparative benchmark in this dataset"},
+    {"kind":"cpu","name":"AMD Ryzen 5 2600","aliases":["AMD Ryzen 5 2600 Six-Core Processor","Ryzen 5 2600"],"dataset":null,"score":null,"source":"Profile identity only","label":"Exact identity only"},
+    {"kind":"cpu","name":"AMD Ryzen 7 3700X","aliases":["AMD Ryzen 7 3700X 8-Core Processor","Ryzen 7 3700X"],"dataset":null,"score":null,"source":"Profile identity only","label":"Exact identity only"},
+    {"kind":"cpu","name":"Intel Core i5-10500","aliases":["Intel Core i5-10500 CPU @ 3.10GHz","Intel(R) Core(TM) i5-10500 CPU @ 3.10GHz"],"dataset":null,"score":null,"source":"Profile identity only","label":"Exact identity only"},
+    {"kind":"cpu","name":"Intel Core i7-11700","aliases":["Intel Core i7-11700 @ 2.50GHz","11th Gen Intel(R) Core(TM) i7-11700 @ 2.50GHz"],"dataset":null,"score":null,"source":"Profile identity only","label":"Exact identity only"}
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "cpu": {
+    "model": null,
+    "manufacturer": null,
+    "architecture": null,
+    "physical_cores": null,
+    "logical_threads": null,
+    "capabilities": []
+  },
+  "ram_total_bytes": null,
+  "ram_available_bytes": null,
+  "gpus": [],
+  "os": {
+    "edition": null,
+    "version": null,
+    "build": null,
+    "architecture": null
+  },
+  "volumes": [],
+  "displays": [],
+  "diagnostics": [
+    "Test fixture: all properties unavailable"
+  ]
+}
