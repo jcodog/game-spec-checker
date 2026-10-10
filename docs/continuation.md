@@ -18,7 +18,8 @@ The following acceptance requirements remain open:
    Only then recommend enabled upscalers/frame generation or game-specific presets.
 4. Extend GUI automation to native save-dialog report/profile/diagnostic exports,
    malformed migration imports, duplicate editing, unavailable destinations and
-   catalogue persistence across full restarts.
+   invalid catalogue recovery after a full restart. Reviewed catalogue persistence
+   across a full restart is verified.
 5. Verify installed release launch, upgrade/profile retention, uninstall and
    missing-WebView2 paths across Windows 10 and 11. CI compilation and creation of
    an NSIS installer are not substitutes for those scenarios.

@@ -169,12 +169,24 @@ $env:GAMESPEC_CDP_URL = "http://127.0.0.1:9223"
 bun run test:desktop
 ```
 
+For full restart persistence, run `node scripts/verify-restart.mjs prepare`,
+close and relaunch the dedicated test instance with the same data/environment,
+then run `node scripts/verify-restart.mjs verify`.
+
 This test uses the actual Tauri IPC and scanner. It checks blank creation,
 editing, reload persistence, search, import isolation, removal, assessments,
 measured tuning, themes, catalogue validation/review and layout overflow. Local
 screenshots and reports stay in ignored `.local/`. Remove debugging environment
 variables and close the test instance after verification. Debugging is only for
 local testing. The test directory should be fresh.
+
+## Screenshots
+
+These show the actual installed requirements editor for the overhaul stage.
+
+![Dark requirements editor](docs/screenshots/requirements-dark.png)
+
+![Light requirements editor](docs/screenshots/requirements-light.png)
 
 ## Structure and licence
 

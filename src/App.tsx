@@ -891,8 +891,8 @@ export default function App() {
                   <h2>Privacy</h2>
                   <p>
                     No telemetry, accounts, ads, hardware uploads or automatic
-                    network refresh. Profiles are saved locally. Opening a
-                    source link uses its external website.
+                    network refresh. Profiles are saved locally. Source URLs can
+                    be copied for independent review.
                   </p>
                 </section>
               </>

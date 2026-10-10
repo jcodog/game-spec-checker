@@ -19,22 +19,29 @@ const row = (name) =>
     .locator(".game-row")
     .filter({ has: page.getByRole("heading", { name, exact: true }) });
 async function remove(name) {
-  const r = row(name);
+  const r = row(name).first();
   await r.getByText("More actions", { exact: true }).click();
   await r.getByRole("button", { name: `Delete ${name}`, exact: true }).click();
   await r.getByRole("button", { name: "Confirm removal", exact: true }).click();
   await r.waitFor({ state: "detached" });
 }
 try {
+  await nav("Your system").click();
   await page
     .getByRole("heading", { name: "Hardware, measured locally", exact: true })
     .waitFor({ timeout: 60000 });
   assert.equal(await page.getByRole("alert").count(), 0);
   await nav("Game library").click();
+  for (const name of [
+    "Desktop verification game",
+    "Desktop import verification",
+  ]) {
+    while (await row(name).count()) await remove(name);
+  }
   await nav("Add game").click();
   const min = page.getByRole("group", { name: "Minimum", exact: true });
   assert.equal(
-    await min.getByLabel("CPU alternatives", { exact: true }).inputValue(),
+    await min.getByRole("textbox", { name: /^CPU alternatives/ }).inputValue(),
     "",
   );
   assert.equal(
@@ -72,12 +79,15 @@ try {
   await row("Desktop verification game")
     .getByRole("button", { name: "Assess", exact: true })
     .click();
-  const gpu = page.getByLabel("Gaming GPU", { exact: true });
+  const gpu = page.getByRole("combobox", { name: "Gaming GPU", exact: true });
   const ids = await gpu
     .locator("option")
     .evaluateAll((o) => o.map((v) => v.value).filter(Boolean));
   if (ids.length) await gpu.selectOption(ids[0]);
-  const drives = page.getByLabel("Installation drive", { exact: true });
+  const drives = page.getByRole("combobox", {
+    name: "Installation drive",
+    exact: true,
+  });
   const mounts = await drives
     .locator("option")
     .evaluateAll((o) => o.map((v) => v.value).filter(Boolean));
@@ -96,10 +106,10 @@ try {
   await nav("Copy report").click();
   await page.getByText("JSON report copied.", { exact: true }).waitFor();
   await page
-    .getByLabel("Resolution profile", { exact: true })
+    .getByRole("combobox", { name: "Resolution profile", exact: true })
     .selectOption("2560x1440");
   await page
-    .getByLabel("Starting preset", { exact: true })
+    .getByRole("combobox", { name: "Starting preset", exact: true })
     .selectOption("Ultra");
   await page
     .locator(".recommendations")
@@ -114,9 +124,13 @@ try {
   await expect(
     page.getByText(/0 decision-eligible measurements/),
   ).toBeVisible();
-  await page.getByLabel("Theme", { exact: true }).selectOption("light");
+  await page
+    .getByRole("combobox", { name: "Theme", exact: true })
+    .selectOption("light");
   assert.equal(await page.locator("html").getAttribute("data-theme"), "light");
-  await page.getByLabel("Theme", { exact: true }).selectOption("dark");
+  await page
+    .getByRole("combobox", { name: "Theme", exact: true })
+    .selectOption("dark");
   await page
     .getByLabel("Preview catalogue JSON", { exact: true })
     .setInputFiles({

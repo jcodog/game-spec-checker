@@ -22,7 +22,9 @@ for (const theme of ["dark", "light"]) {
   await page
     .getByRole("button", { name: "Settings & diagnostics", exact: true })
     .click();
-  await page.getByLabel("Theme", { exact: true }).selectOption(theme);
+  await page
+    .getByRole("combobox", { name: "Theme", exact: true })
+    .selectOption(theme);
   await page.getByRole("button", { name: "Game library", exact: true }).click();
   await page
     .locator(".game-row")

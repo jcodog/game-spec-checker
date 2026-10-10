@@ -788,3 +788,44 @@ fn installation_destination_cannot_be_an_existing_file() {
         .unwrap_err()
         .contains("directory"));
 }
+#[test]
+fn explicit_short_aliases_preserve_full_model_identity() {
+    let c = catalog::catalog();
+    for (kind, actual, required, workload) in [
+        (
+            "cpu",
+            "AMD Ryzen 5 3600 6-Core Processor",
+            "Ryzen 5 3600",
+            Workload::CpuGaming,
+        ),
+        (
+            "cpu",
+            "11th Gen Intel(R) Core(TM) i7-11700 @ 2.50GHz",
+            "i7-11700",
+            Workload::CpuGaming,
+        ),
+        ("gpu", "AMD Radeon RX 7600", "RX 7600", Workload::GpuRaster),
+        (
+            "gpu",
+            "NVIDIA GeForce GTX 1660 SUPER",
+            "GTX 1660 SUPER",
+            Workload::GpuRaster,
+        ),
+    ] {
+        assert_eq!(
+            c.compare(kind, Some(actual), &[required.into()], workload)
+                .result,
+            EvidenceResult::Pass
+        );
+    }
+    assert_eq!(
+        c.compare(
+            "gpu",
+            Some("GTX 1660"),
+            &["GTX 1660 SUPER".into()],
+            Workload::GpuRaster
+        )
+        .result,
+        EvidenceResult::Unknown
+    );
+}
